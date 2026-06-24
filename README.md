@@ -44,7 +44,8 @@ Editá `src/config/site.ts`:
 - `/ubicaciones` Lugares con Google Maps
 - `/club` Plano del club
 - `/reglamento` Texto + PDF
-- `/admin` Panel (próximamente)
+- `/informacion` Contactos del torneo
+- `/admin/login` Panel del coordinador (reglamento y fotos)
 
 ## Próximos pasos
 
