@@ -1,4 +1,4 @@
-import { MessageCircle, Store, BedDouble, ClipboardList } from "lucide-react";
+import { MessageCircle, Store, BedDouble, ClipboardList, UtensilsCrossed } from "lucide-react";
 
 import { ContentSection } from "@/components/content-section";
 import { PageBackground } from "@/components/page-background";
@@ -8,6 +8,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 const icons = {
   stands: Store,
   alojamientos: BedDouble,
+  viandas: UtensilsCrossed,
   inscripciones: ClipboardList,
 } as const;
 
@@ -18,7 +19,7 @@ export default function InformacionPage() {
         title="Información"
         description="Contactá al equipo del torneo según el tema que necesites."
       >
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {siteConfig.infoContacts.map((contact) => {
             const Icon = icons[contact.id as keyof typeof icons] ?? MessageCircle;
             const url = whatsappUrl(contact.number, contact.message);

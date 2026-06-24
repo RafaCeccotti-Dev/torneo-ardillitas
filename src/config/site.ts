@@ -31,6 +31,13 @@ export const siteConfig = {
       message: "Hola, consulto por alojamientos del Torneo Ardillitas.",
     },
     {
+      id: "viandas",
+      title: "Viandas",
+      description: "Pedidos de comida, menús y opciones de viandas para equipos y delegaciones.",
+      number: "",
+      message: "Hola, consulto por viandas del Torneo Ardillitas.",
+    },
+    {
       id: "inscripciones",
       title: "Inscripciones",
       description: "Inscripción de equipos, categorías y documentación del torneo.",
