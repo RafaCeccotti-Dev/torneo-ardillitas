@@ -27,23 +27,31 @@ export function StandingsTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, index) => (
-              <tr
-                key={row.team.id}
-                className={index % 2 === 0 ? "bg-transparent" : "bg-white/5"}
-              >
-                <td className="px-4 py-3 font-medium text-white">{row.team.name}</td>
-                <td className="px-2 py-3 text-center tabular-nums">{row.played}</td>
-                <td className="px-2 py-3 text-center tabular-nums">{row.won}</td>
-                <td className="px-2 py-3 text-center tabular-nums">{row.drawn}</td>
-                <td className="px-2 py-3 text-center tabular-nums">{row.lost}</td>
-                <td className="px-2 py-3 text-center tabular-nums">{row.goalsFor}</td>
-                <td className="px-2 py-3 text-center tabular-nums">{row.goalsAgainst}</td>
-                <td className="px-4 py-3 text-center text-base font-bold tabular-nums text-yellow-400">
-                  {row.points}
+            {rows.length > 0 ? (
+              rows.map((row, index) => (
+                <tr
+                  key={row.team.id}
+                  className={index % 2 === 0 ? "bg-transparent" : "bg-white/5"}
+                >
+                  <td className="px-4 py-3 font-medium text-white">{row.team.name}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">{row.played}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">{row.won}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">{row.drawn}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">{row.lost}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">{row.goalsFor}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">{row.goalsAgainst}</td>
+                  <td className="px-4 py-3 text-center text-base font-bold tabular-nums text-yellow-400">
+                    {row.points}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-center text-sm text-white/55">
+                  Sin equipos cargados en este grupo.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

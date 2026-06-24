@@ -52,6 +52,7 @@ export const siteConfig = {
     {
       name: "Cellshop",
       logo: "/auspiciantes/cellshop.jpeg",
+      href: "https://www.instagram.com/cellshop.ceres/",
     },
   ],
 } as const;

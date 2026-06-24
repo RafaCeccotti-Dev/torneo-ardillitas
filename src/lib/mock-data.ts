@@ -1,5 +1,4 @@
 import type { CityPlace, GalleryPhoto, Match, StandingRow, Team } from "./types";
-import type { TournamentCategorySlug } from "@/lib/tournament-categories";
 
 const teams: Team[] = [
   {
@@ -102,11 +101,6 @@ export const mockStandings: Record<string, StandingRow[]> = {
       points: 0,
     },
   ],
-};
-
-export const mockStandingsByCategory: Record<TournamentCategorySlug, Record<string, StandingRow[]>> = {
-  masculino: mockStandings,
-  femenino: {},
 };
 
 export const mockGallery: GalleryPhoto[] = [];

@@ -14,95 +14,99 @@ export function SiteHeader({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 border-b border-yellow-400/20 bg-black/80 backdrop-blur-md",
+        "sticky top-0 z-50 border-b border-yellow-400/20 bg-black/90 backdrop-blur-md",
         className,
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3 lg:px-6">
-        <Link href="/" className="flex min-w-0 items-center gap-3 text-white">
-          <div className="relative h-12 w-12 shrink-0">
-            <Image
-              src={siteConfig.logos.header}
-              alt="Logo Torneo Ardillitas"
-              fill
-              className="object-contain"
-              sizes="48px"
-              priority
-            />
-          </div>
-          <div className="min-w-0 leading-none">
-            <span className="font-display block whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] text-yellow-400 sm:text-sm lg:text-[15px] lg:tracking-[0.14em]">
-              {siteConfig.club}
-            </span>
-            <span className="font-display mt-1.5 block text-xl font-bold uppercase tracking-wide text-white sm:text-2xl">
-              {siteConfig.shortName}
-            </span>
-          </div>
-        </Link>
-
-        <nav className="hidden items-center gap-0.5 xl:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-full px-3 py-2 text-[15px] font-medium tracking-wide text-white/95 transition hover:bg-white/10 hover:text-white"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <a
-            href={siteConfig.preinscripcionFormUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden rounded-full border border-yellow-400/50 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-yellow-400 transition hover:bg-yellow-400/10 lg:inline-flex"
-          >
-            Preinscripción
-          </a>
-          <a
-            href={whatsappUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden items-center gap-2 rounded-full bg-yellow-400 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-yellow-300 sm:inline-flex"
-          >
-            <MessageCircle className="h-4 w-4" />
-            WhatsApp
-          </a>
-          <details className="relative xl:hidden">
-            <summary className="flex cursor-pointer list-none items-center rounded-full border border-white/20 p-2.5 text-white">
-              <Menu className="h-5 w-5" />
-            </summary>
-            <div className="absolute right-0 mt-2 w-52 rounded-xl border border-yellow-400/20 bg-black/95 p-2 shadow-xl">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-white hover:bg-white/10"
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <a
-                href={siteConfig.preinscripcionFormUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
-              >
-                Preinscripción
-              </a>
-              <a
-                href={whatsappUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
-              >
-                WhatsApp
-              </a>
+      <div className="mx-auto max-w-7xl px-4 lg:px-6">
+        <div className="flex items-center justify-between gap-4 py-4">
+          <Link href="/" className="flex min-w-0 items-center gap-3 text-white">
+            <div className="relative h-12 w-12 shrink-0 sm:h-14 sm:w-14">
+              <Image
+                src={siteConfig.logos.header}
+                alt="Logo Torneo Ardillitas"
+                fill
+                className="object-contain"
+                sizes="56px"
+                priority
+              />
             </div>
-          </details>
+            <div className="min-w-0">
+              <span className="font-display block whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] text-yellow-400 sm:text-sm lg:text-[15px] lg:tracking-[0.14em]">
+                {siteConfig.club}
+              </span>
+              <span className="font-display mt-2 block text-xl font-bold uppercase tracking-wide text-white sm:text-2xl">
+                {siteConfig.shortName}
+              </span>
+            </div>
+          </Link>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <a
+              href={siteConfig.preinscripcionFormUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden rounded-full border border-yellow-400/50 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-yellow-400 transition hover:bg-yellow-400/10 lg:inline-flex"
+            >
+              Preinscripción
+            </a>
+            <a
+              href={whatsappUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden items-center gap-2 rounded-full bg-yellow-400 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-yellow-300 sm:inline-flex"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
+            </a>
+            <details className="relative xl:hidden">
+              <summary className="flex cursor-pointer list-none items-center rounded-full border border-white/20 p-2.5 text-white">
+                <Menu className="h-5 w-5" />
+              </summary>
+              <div className="absolute right-0 mt-2 w-52 rounded-xl border border-yellow-400/20 bg-black/95 p-2 shadow-xl">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-lg px-3 py-2.5 text-sm font-medium text-white hover:bg-white/10"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <a
+                  href={siteConfig.preinscripcionFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
+                >
+                  Preinscripción
+                </a>
+                <a
+                  href={whatsappUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
+                >
+                  WhatsApp
+                </a>
+              </div>
+            </details>
+          </div>
         </div>
+
+        <nav className="hidden border-t border-yellow-400/15 pb-4 pt-4 xl:block">
+          <div className="flex flex-wrap items-center justify-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-full px-4 py-2.5 text-[15px] font-medium tracking-wide text-white/95 transition hover:bg-white/10 hover:text-white"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
       </div>
     </header>
   );
@@ -117,8 +121,15 @@ export function SiteFooter() {
             Auspiciantes
           </p>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
-            {siteConfig.sponsors.map((sponsor) => {
-              const logo = (
+            {siteConfig.sponsors.map((sponsor) => (
+              <a
+                key={sponsor.name}
+                href={sponsor.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="opacity-90 transition hover:opacity-100"
+                title={sponsor.name}
+              >
                 <div className="flex h-24 w-36 items-center justify-center rounded-xl bg-white/95 p-3 sm:h-28 sm:w-44">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -127,25 +138,8 @@ export function SiteFooter() {
                     className="max-h-full max-w-full object-contain"
                   />
                 </div>
-              );
-
-              return "href" in sponsor && sponsor.href ? (
-                <a
-                  key={sponsor.name}
-                  href={sponsor.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="opacity-90 transition hover:opacity-100"
-                  title={sponsor.name}
-                >
-                  {logo}
-                </a>
-              ) : (
-                <div key={sponsor.name} className="opacity-90" title={sponsor.name}>
-                  {logo}
-                </div>
-              );
-            })}
+              </a>
+            ))}
           </div>
         </div>
       ) : null}
