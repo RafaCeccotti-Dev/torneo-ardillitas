@@ -8,7 +8,7 @@ export const siteConfig = {
   edition: 17,
   tournamentDates: "21, 22 y 23 de noviembre de 2026",
   whatsapp: {
-    number: "5493491510266",
+    number: "5493491537426",
     label: "Coordinador del torneo",
     message: "Hola, consulto por el Torneo Ardillitas.",
   },

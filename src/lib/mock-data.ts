@@ -103,13 +103,7 @@ export const mockStandings: Record<string, StandingRow[]> = {
   ],
 };
 
-export const mockGallery: GalleryPhoto[] = [
-  {
-    id: "g1",
-    src: "/backgrounds/hero.jpg",
-    caption: "Reemplazá con fotos reales en /public/galeria/",
-  },
-];
+export const mockGallery: GalleryPhoto[] = [];
 
 export const mockPlaces: CityPlace[] = [
   {
