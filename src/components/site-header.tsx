@@ -116,16 +116,15 @@ export function SiteFooter() {
           <p className="font-display mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
             Auspiciantes
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
             {siteConfig.sponsors.map((sponsor) => {
               const logo = (
-                <div className="relative h-16 w-28 sm:h-20 sm:w-36">
-                  <Image
+                <div className="flex h-24 w-36 items-center justify-center rounded-xl bg-white/95 p-3 sm:h-28 sm:w-44">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={sponsor.logo}
                     alt={sponsor.name}
-                    fill
-                    className="object-contain"
-                    sizes="144px"
+                    className="max-h-full max-w-full object-contain"
                   />
                 </div>
               );
