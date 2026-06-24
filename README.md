@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Torneo Ardillitas
 
-## Getting Started
+Web del torneo de fútbol del club — desarrollo local primero, deploy en Vercel después.
 
-First, run the development server:
+## Arrancar
 
 ```bash
+cd D:\Proyectos\torneo-ardillitas
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrí [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Fotos de fondo (coordinador del club)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copiá las fotos en `public/backgrounds/`:
 
-## Learn More
+| Archivo | Uso |
+|---------|-----|
+| `hero.jpg` | Portada principal (**mínimo recomendado**) |
+| `partidos.jpg` | Sección partidos |
+| `tabla.jpg` | Tabla |
+| `fotos.jpg` | Galería |
+| `ubicaciones.jpg` | Ubicaciones |
+| `club.jpg` | Plano del predio |
+| `reglamento.jpg` | Reglamento |
 
-To learn more about Next.js, take a look at the following resources:
+Si falta una imagen, se usa un degradado verde automático.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Configuración rápida
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Editá `src/config/site.ts`:
 
-## Deploy on Vercel
+- WhatsApp del coordinador (`whatsapp.number`)
+- Link de Google Drive para fotos (`drivePhotosUrl`)
+- Nombre del club / torneo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Secciones
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/` Inicio
+- `/partidos` Fixture
+- `/tabla` Posiciones
+- `/fotos` Galería
+- `/ubicaciones` Lugares con Google Maps
+- `/club` Plano del club
+- `/reglamento` Texto + PDF
+- `/admin` Panel (próximamente)
+
+## Próximos pasos
+
+1. Supabase (equipos, partidos, fotos)
+2. Panel admin con login
+3. Deploy Vercel + dominio del club

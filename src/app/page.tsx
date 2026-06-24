@@ -1,101 +1,110 @@
-import Image from "next/image";
+import Link from "next/link";
+import { CalendarDays, ExternalLink, MapPin, Trophy } from "lucide-react";
 
-export default function Home() {
+import { ContentSection } from "@/components/content-section";
+import { MatchCard } from "@/components/match-card";
+import { PageBackground } from "@/components/page-background";
+import { PreinscripcionBanner } from "@/components/preinscripcion-banner";
+import { siteConfig } from "@/config/site";
+import { mockMatches } from "@/lib/mock-data";
+
+export default function HomePage() {
+  const upcoming = mockMatches.filter((match) => match.status === "programado").slice(0, 2);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <>
+      <PageBackground imageKey="hero" className="min-h-[85vh]">
+        <div className="mx-auto flex max-w-6xl flex-col justify-end px-4 pb-16 pt-28 md:min-h-[85vh]">
+          <p className="font-display mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-yellow-400 sm:text-base sm:tracking-[0.28em]">
+            {siteConfig.club} · {siteConfig.city}
+          </p>
+          <h1 className="font-display max-w-4xl text-5xl font-bold uppercase leading-[0.95] tracking-wide text-white sm:text-6xl md:text-7xl">
+            {siteConfig.name}
+          </h1>
+          <p className="font-display mt-4 text-base font-medium uppercase tracking-widest text-yellow-400/95 sm:text-lg">
+            Edición {siteConfig.edition} · {siteConfig.tournamentDates}
+          </p>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/85">
+            Fixture, resultados, tabla de posiciones y toda la info del torneo en un
+            solo lugar.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href={siteConfig.preinscripcionFormUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-display inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition hover:bg-yellow-300"
+            >
+              Preinscribirme
+              <ExternalLink className="h-4 w-4" />
+            </a>
+            <Link
+              href="/partidos"
+              className="font-display rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10"
+            >
+              Ver partidos
+            </Link>
+            <Link
+              href="/tabla"
+              className="font-display rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10"
+            >
+              Tabla de posiciones
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </PageBackground>
+
+      <PreinscripcionBanner />
+
+      <div className="bg-black">
+        <ContentSection
+          title="Próximos partidos"
+          description="Datos de ejemplo — el coordinador los cargará desde el panel."
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {upcoming.length > 0 ? (
+              upcoming.map((match) => <MatchCard key={match.id} match={match} />)
+            ) : (
+              <p className="text-white/70">No hay partidos programados por ahora.</p>
+            )}
+          </div>
+        </ContentSection>
+
+        <ContentSection title="Accesos rápidos" className="pt-0">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Link
+              href="/partidos"
+              className="rounded-2xl border border-yellow-400/15 bg-white/5 p-5 transition hover:border-yellow-400/40 hover:bg-white/10"
+            >
+              <CalendarDays className="mb-3 h-8 w-8 text-yellow-400" />
+              <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-white">
+                Partidos
+              </h2>
+              <p className="mt-1 text-sm text-white/70">Grupos y cruces</p>
+            </Link>
+            <Link
+              href="/tabla"
+              className="rounded-2xl border border-yellow-400/15 bg-white/5 p-5 transition hover:border-yellow-400/40 hover:bg-white/10"
+            >
+              <Trophy className="mb-3 h-8 w-8 text-yellow-400" />
+              <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-white">
+                Tabla
+              </h2>
+              <p className="mt-1 text-sm text-white/70">Posiciones por grupo</p>
+            </Link>
+            <Link
+              href="/ubicaciones"
+              className="rounded-2xl border border-yellow-400/15 bg-white/5 p-5 transition hover:border-yellow-400/40 hover:bg-white/10"
+            >
+              <MapPin className="mb-3 h-8 w-8 text-yellow-400" />
+              <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-white">
+                Ubicaciones
+              </h2>
+              <p className="mt-1 text-sm text-white/70">Lugares útiles en la ciudad</p>
+            </Link>
+          </div>
+        </ContentSection>
+      </div>
+    </>
   );
 }
