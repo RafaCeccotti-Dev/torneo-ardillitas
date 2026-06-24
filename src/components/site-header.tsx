@@ -118,7 +118,10 @@ export function SiteFooter() {
         {siteConfig.club} · {siteConfig.city}
       </p>
       <p className="mt-4 text-xs text-white/50">
-        Edición {siteConfig.edition} — panel de coordinadores próximamente
+        Edición {siteConfig.edition} —{" "}
+        <Link href="/admin/login" className="text-white/40 hover:text-yellow-400">
+          Panel coordinador
+        </Link>
       </p>
     </footer>
   );

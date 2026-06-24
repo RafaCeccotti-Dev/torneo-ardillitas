@@ -5,10 +5,11 @@ import { Camera, ExternalLink } from "lucide-react";
 import { ContentSection } from "@/components/content-section";
 import { PageBackground } from "@/components/page-background";
 import { siteConfig } from "@/config/site";
-import { mockGallery } from "@/lib/mock-data";
+import { getGalleryPhotos } from "@/lib/content";
 
-export default function FotosPage() {
-  const hasPhotos = mockGallery.length > 0;
+export default async function FotosPage() {
+  const photos = await getGalleryPhotos();
+  const hasPhotos = photos.length > 0;
 
   return (
     <PageBackground imageKey="hero" className="min-h-[40vh]">
@@ -18,7 +19,7 @@ export default function FotosPage() {
       >
         {hasPhotos ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mockGallery.map((photo) => (
+            {photos.map((photo) => (
               <figure
                 key={photo.id}
                 className="overflow-hidden rounded-2xl border border-yellow-400/15 bg-black/50"

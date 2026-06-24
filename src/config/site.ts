@@ -14,6 +14,30 @@ export const siteConfig = {
   },
   preinscripcionFormUrl: "https://forms.gle/igkPKpmTw947DFSUA",
   drivePhotosUrl: "",
+  /** Completar con número internacional sin + (ej. 5493491XXXXXX) */
+  infoContacts: [
+    {
+      id: "stands",
+      title: "Stands",
+      description: "Consultas sobre espacios, feriantes y ubicación de stands en el predio.",
+      number: "",
+      message: "Hola, consulto por los stands del Torneo Ardillitas.",
+    },
+    {
+      id: "alojamientos",
+      title: "Alojamientos",
+      description: "Reservas, hospedaje y opciones para delegaciones visitantes.",
+      number: "",
+      message: "Hola, consulto por alojamientos del Torneo Ardillitas.",
+    },
+    {
+      id: "inscripciones",
+      title: "Inscripciones",
+      description: "Inscripción de equipos, categorías y documentación del torneo.",
+      number: "",
+      message: "Hola, consulto por la inscripción al Torneo Ardillitas.",
+    },
+  ],
   logos: {
     header: "/logos/ardillita-pelota.png",
     mascot: "/logos/ardillita-celebrando.png",
@@ -38,6 +62,7 @@ export const navItems = [
   { href: "/partidos", label: "Partidos" },
   { href: "/tabla", label: "Tabla" },
   { href: "/fotos", label: "Fotos" },
+  { href: "/informacion", label: "Información" },
   { href: "/ubicaciones", label: "Ubicaciones" },
   { href: "/club", label: "El club" },
   { href: "/reglamento", label: "Reglamento" },
