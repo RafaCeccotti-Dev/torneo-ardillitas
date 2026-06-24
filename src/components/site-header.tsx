@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, MessageCircle } from "lucide-react";
 
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import { MobileNav } from "@/components/mobile-nav";
 import { navItems, siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
@@ -56,41 +57,13 @@ export function SiteHeader({ className }: { className?: string }) {
               rel="noopener noreferrer"
               className="hidden items-center gap-2 rounded-full bg-yellow-400 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-yellow-300 sm:inline-flex"
             >
-              <MessageCircle className="h-4 w-4" />
+              <WhatsAppIcon />
               WhatsApp
             </a>
-            <details className="relative xl:hidden">
-              <summary className="flex cursor-pointer list-none items-center rounded-full border border-white/20 p-2.5 text-white">
-                <Menu className="h-5 w-5" />
-              </summary>
-              <div className="absolute right-0 mt-2 w-52 rounded-xl border border-yellow-400/20 bg-black/95 p-2 shadow-xl">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="block rounded-lg px-3 py-2.5 text-sm font-medium text-white hover:bg-white/10"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                <a
-                  href={siteConfig.preinscripcionFormUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
-                >
-                  Preinscripción
-                </a>
-                <a
-                  href={whatsappUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
-                >
-                  WhatsApp
-                </a>
-              </div>
-            </details>
+            <MobileNav
+              preinscripcionUrl={siteConfig.preinscripcionFormUrl}
+              whatsappUrl={whatsappUrl()}
+            />
           </div>
         </div>
 
