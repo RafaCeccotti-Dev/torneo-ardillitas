@@ -42,6 +42,18 @@ export const siteConfig = {
     header: "/logos/ardillita-pelota.png",
     mascot: "/logos/ardillita-celebrando.png",
   },
+  /** Auspiciantes fijos en código — no se editan desde el panel */
+  sponsors: [
+    {
+      name: "Calzados Frank",
+      logo: "/auspiciantes/calzados-frank.png",
+      href: "https://www.instagram.com/calzados_frank/",
+    },
+    {
+      name: "Cellshop",
+      logo: "/auspiciantes/cellshop.png",
+    },
+  ],
 } as const;
 
 /** Rutas de fondos en /public/backgrounds — reemplazá con las fotos del coordinador */

@@ -110,7 +110,47 @@ export function SiteHeader({ className }: { className?: string }) {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-yellow-400/20 bg-black px-4 py-8 text-center text-sm text-white/70">
+    <footer className="border-t border-yellow-400/20 bg-black px-4 py-10 text-center text-sm text-white/70">
+      {siteConfig.sponsors.length > 0 ? (
+        <div className="mx-auto mb-8 max-w-4xl">
+          <p className="font-display mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
+            Auspiciantes
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+            {siteConfig.sponsors.map((sponsor) => {
+              const logo = (
+                <div className="relative h-16 w-28 sm:h-20 sm:w-36">
+                  <Image
+                    src={sponsor.logo}
+                    alt={sponsor.name}
+                    fill
+                    className="object-contain"
+                    sizes="144px"
+                  />
+                </div>
+              );
+
+              return "href" in sponsor && sponsor.href ? (
+                <a
+                  key={sponsor.name}
+                  href={sponsor.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="opacity-90 transition hover:opacity-100"
+                  title={sponsor.name}
+                >
+                  {logo}
+                </a>
+              ) : (
+                <div key={sponsor.name} className="opacity-90" title={sponsor.name}>
+                  {logo}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       <p className="font-display text-lg font-semibold uppercase tracking-wide text-white">
         {siteConfig.name}
       </p>
