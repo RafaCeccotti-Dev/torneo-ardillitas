@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/admin-auth";
+import { combineKickoff } from "@/lib/kickoff";
 import { revalidateTournamentPages, resolveMatchStatus } from "@/lib/revalidate-tournament";
 
 type RouteContext = { params: { id: string } };
-
-function combineKickoff(date: string, time: string) {
-  return new Date(`${date}T${time}:00`).toISOString();
-}
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   const auth = await requireAdmin();
@@ -36,7 +33,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   if (body.court) updates.court = body.court;
   if ("homeScore" in body) updates.home_score = body.homeScore;
   if ("awayScore" in body) updates.away_score = body.awayScore;
-  if (body.kickoffDate && body.kickoffTime) {
+  if ("kickoffDate" in body && "kickoffTime" in body && body.kickoffDate && body.kickoffTime) {
     updates.kickoff_at = combineKickoff(body.kickoffDate, body.kickoffTime);
   }
 

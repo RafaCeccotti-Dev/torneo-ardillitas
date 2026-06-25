@@ -1,18 +1,8 @@
 import Image from "next/image";
 
 import type { Match } from "@/lib/types";
+import { formatKickoff } from "@/lib/kickoff";
 import { cn } from "@/lib/utils";
-
-function formatKickoff(iso: string) {
-  const date = new Date(iso);
-  return new Intl.DateTimeFormat("es-AR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 function TeamBadge({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
   return (

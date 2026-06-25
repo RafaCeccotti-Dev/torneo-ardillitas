@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/admin-auth";
+import { combineKickoff } from "@/lib/kickoff";
 import { revalidateTournamentPages, resolveMatchStatus } from "@/lib/revalidate-tournament";
-
-function combineKickoff(date: string, time: string) {
-  return new Date(`${date}T${time}:00`).toISOString();
-}
 
 export async function GET() {
   const auth = await requireAdmin();

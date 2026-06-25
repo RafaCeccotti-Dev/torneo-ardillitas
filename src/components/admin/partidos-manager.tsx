@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { standingsConfig, tournamentCategories } from "@/lib/tournament-categories";
+import { formatKickoff, splitKickoff } from "@/lib/kickoff";
 
 type TeamRow = {
   id: string;
@@ -33,26 +34,6 @@ function unwrapTeam(
 ): { id: string; name: string; group_name: string } | null {
   if (!value) return null;
   return Array.isArray(value) ? value[0] ?? null : value;
-}
-
-function formatKickoff(iso: string) {
-  return new Intl.DateTimeFormat("es-AR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(iso));
-}
-
-function splitKickoff(iso: string) {
-  const date = new Date(iso);
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const hh = String(date.getHours()).padStart(2, "0");
-  const min = String(date.getMinutes()).padStart(2, "0");
-  return { kickoffDate: `${yyyy}-${mm}-${dd}`, kickoffTime: `${hh}:${min}` };
 }
 
 const emptyForm = {
