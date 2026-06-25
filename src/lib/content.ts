@@ -1,8 +1,9 @@
 import type { GalleryPhoto, Match, Team } from "@/lib/types";
-import type { TournamentCategorySlug } from "@/lib/tournament-categories";
 import { computeStandingsByGroup } from "@/lib/standings";
 import { seedTeams } from "@/lib/teams-seed";
 import { mockStandingsByCategory, type StandingsByYear } from "@/lib/standings-data";
+import type { TournamentCategorySlug } from "@/lib/tournament-categories";
+import { standingsConfig } from "@/lib/tournament-categories";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
 export type ReglamentoFile = {
@@ -133,8 +134,20 @@ export async function getMatches(filters?: {
   const { data: matchRows, error } = await query;
   if (error || !matchRows?.length) return [];
 
-  const teams = await getTeams();
-  const teamMap = new Map(teams.map((team) => [team.id, team]));
+  const teamIds = Array.from(
+    new Set(
+      (matchRows as MatchRow[]).flatMap((row) => [row.home_team_id, row.away_team_id]),
+    ),
+  );
+
+  const { data: teamRows, error: teamsError } = await supabase
+    .from("teams")
+    .select("id, name, slug, category, year_label, group_name, sort_order")
+    .in("id", teamIds);
+
+  if (teamsError || !teamRows?.length) return [];
+
+  const teamMap = new Map((teamRows as TeamRow[]).map((row) => [row.id, mapTeam(row)]));
 
   return (matchRows as MatchRow[])
     .map((row) => {
@@ -152,25 +165,21 @@ export async function getStandingsForCategory(
   const fallback = mockStandingsByCategory[category];
   const teams = await getTeams({ category });
   const matches = await getMatches({ category });
+  const result: StandingsByYear = {};
 
-  if (!teams.length) return fallback;
-
-  const years = new Set<string>([
-    ...teams.map((team) => team.yearLabel ?? ""),
-    ...matches.map((match) => match.yearLabel),
-  ]);
-
-  const result: StandingsByYear = { ...fallback };
-
-  for (const yearLabel of Array.from(years)) {
-    if (!yearLabel) continue;
+  for (const yearCategory of standingsConfig[category]) {
+    const yearLabel = yearCategory.label;
     const yearTeams = teams.filter((team) => team.yearLabel === yearLabel);
-    const yearMatches = matches.filter((match) => match.yearLabel === yearLabel);
-    const computed = computeStandingsByGroup(yearTeams, yearMatches);
-    result[yearLabel] = {
-      ...(fallback[yearLabel] ?? {}),
-      ...computed,
-    };
+    const yearMatches = matches.filter(
+      (match) => match.yearLabel === yearLabel && match.phase === "grupos",
+    );
+
+    if (yearTeams.length > 0) {
+      result[yearLabel] = computeStandingsByGroup(yearTeams, yearMatches);
+      continue;
+    }
+
+    result[yearLabel] = fallback[yearLabel] ?? {};
   }
 
   return result;

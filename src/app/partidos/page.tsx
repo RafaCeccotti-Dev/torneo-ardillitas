@@ -4,6 +4,8 @@ import { PageBackground } from "@/components/page-background";
 import { getMatches } from "@/lib/content";
 import { mockMatches } from "@/lib/mock-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function PartidosPage() {
   const loadedMatches = await getMatches();
   const matches = loadedMatches.length ? loadedMatches : mockMatches;

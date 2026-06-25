@@ -2,6 +2,7 @@ import type { Match, StandingRow, Team } from "@/lib/types";
 
 export function computeStandingsByGroup(teams: Team[], matches: Match[]) {
   const groups: Record<string, Map<string, StandingRow>> = {};
+  const teamById = new Map(teams.map((team) => [team.id, team]));
 
   for (const team of teams) {
     if (!groups[team.group]) groups[team.group] = new Map();
@@ -21,8 +22,12 @@ export function computeStandingsByGroup(teams: Team[], matches: Match[]) {
     if (match.status !== "finalizado") continue;
     if (match.homeScore == null || match.awayScore == null) continue;
 
-    const home = groups[match.homeTeam.group]?.get(match.homeTeam.id);
-    const away = groups[match.awayTeam.group]?.get(match.awayTeam.id);
+    const homeTeam = teamById.get(match.homeTeam.id);
+    const awayTeam = teamById.get(match.awayTeam.id);
+    if (!homeTeam || !awayTeam) continue;
+
+    const home = groups[homeTeam.group]?.get(homeTeam.id);
+    const away = groups[awayTeam.group]?.get(awayTeam.id);
     if (!home || !away) continue;
 
     home.played += 1;

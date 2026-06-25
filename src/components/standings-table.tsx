@@ -23,6 +23,7 @@ export function StandingsTable({
               <th className="px-2 py-2 text-center">PP</th>
               <th className="px-2 py-2 text-center">GF</th>
               <th className="px-2 py-2 text-center">GC</th>
+              <th className="px-2 py-2 text-center">DG</th>
               <th className="px-4 py-2 text-center">Pts</th>
             </tr>
           </thead>
@@ -40,6 +41,11 @@ export function StandingsTable({
                   <td className="px-2 py-3 text-center tabular-nums">{row.lost}</td>
                   <td className="px-2 py-3 text-center tabular-nums">{row.goalsFor}</td>
                   <td className="px-2 py-3 text-center tabular-nums">{row.goalsAgainst}</td>
+                  <td className="px-2 py-3 text-center tabular-nums">
+                    {row.goalsFor - row.goalsAgainst > 0
+                      ? `+${row.goalsFor - row.goalsAgainst}`
+                      : row.goalsFor - row.goalsAgainst}
+                  </td>
                   <td className="px-4 py-3 text-center text-base font-bold tabular-nums text-yellow-400">
                     {row.points}
                   </td>
@@ -47,7 +53,7 @@ export function StandingsTable({
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-sm text-white/55">
+                <td colSpan={9} className="px-4 py-6 text-center text-sm text-white/55">
                   Sin equipos cargados en este grupo.
                 </td>
               </tr>

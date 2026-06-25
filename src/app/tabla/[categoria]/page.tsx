@@ -11,6 +11,8 @@ import {
   tournamentCategories,
 } from "@/lib/tournament-categories";
 
+export const dynamic = "force-dynamic";
+
 type TablaCategoriaPageProps = {
   params: { categoria: string };
 };

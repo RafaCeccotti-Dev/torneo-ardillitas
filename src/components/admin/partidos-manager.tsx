@@ -152,7 +152,8 @@ export function PartidosManager() {
       kickoffDate: form.kickoffDate,
       kickoffTime: form.kickoffTime,
       court: form.court,
-      status: form.status,
+      status:
+        form.homeScore !== "" && form.awayScore !== "" ? "finalizado" : form.status,
       homeScore: form.homeScore === "" ? null : Number(form.homeScore),
       awayScore: form.awayScore === "" ? null : Number(form.awayScore),
     };
@@ -202,6 +203,10 @@ export function PartidosManager() {
         <h2 className="font-display text-lg font-bold uppercase text-white">
           {editingId ? "Editar partido" : "Nuevo partido"}
         </h2>
+
+        <p className="mt-2 text-sm text-white/60">
+          Si cargás goles de ambos equipos, el partido pasa a finalizado y la tabla se actualiza sola.
+        </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="block text-sm text-white/80">

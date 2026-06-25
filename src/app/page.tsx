@@ -10,6 +10,8 @@ import { getMatches } from "@/lib/content";
 import { formatEdition } from "@/lib/edition";
 import { mockMatches } from "@/lib/mock-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const loadedMatches = await getMatches();
   const matches = loadedMatches.length ? loadedMatches : mockMatches;

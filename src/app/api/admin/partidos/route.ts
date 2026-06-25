@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/admin-auth";
+import { revalidateTournamentPages, resolveMatchStatus } from "@/lib/revalidate-tournament";
 
 function combineKickoff(date: string, time: string) {
   return new Date(`${date}T${time}:00`).toISOString();
@@ -69,6 +70,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Los equipos deben ser distintos" }, { status: 400 });
   }
 
+  const resolvedStatus = resolveMatchStatus(status, homeScore, awayScore);
+
   const { data, error } = await supabase
     .from("matches")
     .insert({
@@ -82,7 +85,7 @@ export async function POST(request: Request) {
       away_score: awayScore,
       kickoff_at: combineKickoff(kickoffDate, kickoffTime),
       court,
-      status,
+      status: resolvedStatus,
     })
     .select("id")
     .single();
@@ -90,6 +93,8 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  revalidateTournamentPages();
 
   return NextResponse.json({ ok: true, id: data.id });
 }
