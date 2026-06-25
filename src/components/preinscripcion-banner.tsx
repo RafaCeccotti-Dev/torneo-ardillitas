@@ -1,38 +1,22 @@
-import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
 import { backgroundImages, siteConfig } from "@/config/site";
 
 export function PreinscripcionBanner() {
   return (
-    <section className="relative isolate min-h-[380px] overflow-hidden border-y border-yellow-400/25 md:min-h-[420px]">
+    <section className="relative isolate w-full overflow-hidden border-y border-yellow-400/25">
       <div
-        className="absolute inset-0 scale-105 bg-cover bg-[center_top] bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${backgroundImages.preinscripcion})` }}
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/45 to-black/75"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-black/25 to-black/70"
+        className="absolute inset-0 bg-black/30 md:bg-black/20"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 py-10 md:flex-row md:items-center md:gap-10 md:py-14">
-        <div className="relative h-40 w-40 shrink-0 md:h-48 md:w-48">
-          <Image
-            src={siteConfig.logos.mascot}
-            alt="Mascota Ardillitas"
-            fill
-            className="object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]"
-            sizes="192px"
-            priority
-          />
-        </div>
-
-        <div className="w-full max-w-2xl flex-1 rounded-2xl border border-yellow-400/20 bg-black/82 p-6 text-center shadow-2xl backdrop-blur-md md:text-left md:p-8">
+      <div className="relative z-10 flex min-h-[280px] items-center justify-center px-4 py-10 sm:min-h-[320px] md:py-12">
+        <div className="w-full max-w-xl rounded-2xl border border-yellow-400/25 bg-black/78 p-6 text-center shadow-2xl backdrop-blur-md md:p-8">
           <p className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
             Edición {siteConfig.edition} · {siteConfig.tournamentDates}
           </p>
