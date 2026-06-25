@@ -6,6 +6,7 @@ export const siteConfig = {
   club: "Club Central Argentino Olímpico",
   city: "Ceres, Santa Fe",
   edition: 17,
+  editionRoman: "XVII",
   tournamentDates: "21, 22 y 23 de noviembre de 2026",
   whatsapp: {
     number: "5493491537426",
@@ -52,6 +53,12 @@ export const siteConfig = {
   /** Auspiciantes fijos en código — no se editan desde el panel */
   sponsors: [
     {
+      name: "Calzados Frank",
+      logo: "/auspiciantes/calzados-frank-mono.png",
+      href: "https://www.instagram.com/calzados_frank/",
+      monochrome: true,
+    },
+    {
       name: "Cellshop",
       logo: "/auspiciantes/cellshop-mono.png",
       href: "https://www.instagram.com/cellshop.ceres/",
@@ -67,6 +74,12 @@ export const siteConfig = {
       name: "Piwi encomiendas",
       logo: "/auspiciantes/piwi-mono.png",
       href: "https://www.instagram.com/piwiencomiendas/",
+      monochrome: true,
+    },
+    {
+      name: "Mundo Rodados",
+      logo: "/auspiciantes/mundo-rodados-mono.png",
+      href: "https://www.instagram.com/mundo.rodados/",
       monochrome: true,
     },
   ],

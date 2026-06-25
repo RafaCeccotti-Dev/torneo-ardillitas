@@ -1,5 +1,6 @@
 import type { StandingRow } from "@/lib/types";
 import type { TournamentCategorySlug } from "@/lib/tournament-categories";
+import { seedTeams } from "@/lib/teams-seed";
 
 function team(id: string, name: string, group: string): StandingRow["team"] {
   return {
@@ -25,41 +26,23 @@ function emptyRow(teamName: string, group: string, id: string): StandingRow {
   };
 }
 
+function seedRowsForYear(yearLabel: string): Record<string, StandingRow[]> {
+  const groups: Record<string, StandingRow[]> = {};
+  for (const seed of seedTeams.filter((item) => item.yearLabel === yearLabel)) {
+    if (!groups[seed.group]) groups[seed.group] = [];
+    groups[seed.group].push(emptyRow(seed.name, seed.group, seed.slug));
+  }
+  return groups;
+}
+
 /** año → grupo → filas */
 export type StandingsByYear = Record<string, Record<string, StandingRow[]>>;
 
+const masculino2015 = seedRowsForYear("2015");
+
 export const mockStandingsByCategory: Record<TournamentCategorySlug, StandingsByYear> = {
   masculino: {
-    "2015": {
-      A: [
-        {
-          team: team("m15-a1", "Ardillitas FC", "A"),
-          played: 2,
-          won: 2,
-          drawn: 0,
-          lost: 0,
-          goalsFor: 5,
-          goalsAgainst: 2,
-          points: 6,
-        },
-        {
-          team: team("m15-a2", "Sportivo Norte", "A"),
-          played: 2,
-          won: 1,
-          drawn: 0,
-          lost: 1,
-          goalsFor: 4,
-          goalsAgainst: 3,
-          points: 3,
-        },
-        emptyRow("Juventud Unida", "A", "m15-a3"),
-      ],
-      B: [
-        emptyRow("Defensores Sur", "B", "m15-b1"),
-        emptyRow("Atlético Ceres", "B", "m15-b2"),
-      ],
-      C: [emptyRow("Por confirmar", "C", "m15-c1")],
-    },
+    "2015": masculino2015,
     "2016": {
       A: [emptyRow("Por confirmar", "A", "m16-a1")],
       B: [emptyRow("Por confirmar", "B", "m16-b1")],

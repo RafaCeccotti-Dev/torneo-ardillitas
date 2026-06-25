@@ -11,7 +11,16 @@ export default function AdminDashboardPage() {
         description="Gestioná el contenido publicado en la web del torneo."
       >
         <AdminNav />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/admin/dashboard/partidos"
+            className="rounded-2xl border border-yellow-400/15 bg-white/5 p-6 transition hover:border-yellow-400/40"
+          >
+            <h2 className="font-display text-lg font-bold uppercase text-white">Partidos</h2>
+            <p className="mt-2 text-sm text-white/70">
+              Cargar fixture, horarios, canchas y resultados del torneo.
+            </p>
+          </Link>
           <Link
             href="/admin/dashboard/reglamento"
             className="rounded-2xl border border-yellow-400/15 bg-white/5 p-6 transition hover:border-yellow-400/40"
@@ -27,9 +36,6 @@ export default function AdminDashboardPage() {
             <p className="mt-2 text-sm text-white/70">Publicar imágenes en la galería del sitio.</p>
           </Link>
         </div>
-        <p className="mt-8 text-sm text-white/50">
-          Partidos y tabla de posiciones: próximamente, cuando estén definidos los equipos.
-        </p>
       </ContentSection>
     </div>
   );

@@ -36,6 +36,8 @@ export const mockTeams = teams;
 export const mockMatches: Match[] = [
   {
     id: "m1",
+    category: "masculino",
+    yearLabel: "2015",
     phase: "grupos",
     homeTeam: teams[0],
     awayTeam: teams[1],
@@ -47,6 +49,8 @@ export const mockMatches: Match[] = [
   },
   {
     id: "m2",
+    category: "masculino",
+    yearLabel: "2015",
     phase: "grupos",
     homeTeam: teams[2],
     awayTeam: teams[3],

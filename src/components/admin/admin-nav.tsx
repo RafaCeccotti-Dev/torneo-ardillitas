@@ -30,6 +30,12 @@ export function AdminNav() {
         Reglamento
       </Link>
       <Link
+        href="/admin/dashboard/partidos"
+        className="rounded-full px-4 py-2 text-sm text-white hover:bg-white/10"
+      >
+        Partidos
+      </Link>
+      <Link
         href="/admin/dashboard/fotos"
         className="rounded-full px-4 py-2 text-sm text-white hover:bg-white/10"
       >

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { MobileNav } from "@/components/mobile-nav";
 import { navItems, siteConfig } from "@/config/site";
+import { formatEdition } from "@/lib/edition";
 import { cn } from "@/lib/utils";
 
 function whatsappUrl() {
@@ -128,7 +129,7 @@ export function SiteFooter() {
         {siteConfig.club} · {siteConfig.city}
       </p>
       <p className="mt-4 text-xs text-white/50">
-        Edición {siteConfig.edition} —{" "}
+        Edición {formatEdition()} —{" "}
         <Link href="/admin/login" className="text-white/40 hover:text-yellow-400">
           Panel coordinador
         </Link>

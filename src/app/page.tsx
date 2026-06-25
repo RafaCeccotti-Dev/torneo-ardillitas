@@ -6,10 +6,14 @@ import { MatchCard } from "@/components/match-card";
 import { PageBackground } from "@/components/page-background";
 import { PreinscripcionBanner } from "@/components/preinscripcion-banner";
 import { siteConfig } from "@/config/site";
+import { getMatches } from "@/lib/content";
+import { formatEdition } from "@/lib/edition";
 import { mockMatches } from "@/lib/mock-data";
 
-export default function HomePage() {
-  const upcoming = mockMatches.filter((match) => match.status === "programado").slice(0, 2);
+export default async function HomePage() {
+  const loadedMatches = await getMatches();
+  const matches = loadedMatches.length ? loadedMatches : mockMatches;
+  const upcoming = matches.filter((match) => match.status === "programado").slice(0, 2);
 
   return (
     <>
@@ -22,7 +26,7 @@ export default function HomePage() {
             {siteConfig.name}
           </h1>
           <p className="font-display mt-4 text-base font-medium uppercase tracking-widest text-yellow-400/95 sm:text-lg">
-            Edición {siteConfig.edition} · {siteConfig.tournamentDates}
+            Edición {formatEdition()} · {siteConfig.tournamentDates}
           </p>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/85">
             Fixture, resultados, tabla de posiciones y toda la info del torneo en un
@@ -59,7 +63,7 @@ export default function HomePage() {
       <div className="bg-black">
         <ContentSection
           title="Próximos partidos"
-          description="Datos de ejemplo — el coordinador los cargará desde el panel."
+          description="Datos del torneo — el coordinador los actualiza desde el panel."
         >
           <div className="grid gap-4 md:grid-cols-2">
             {upcoming.length > 0 ? (

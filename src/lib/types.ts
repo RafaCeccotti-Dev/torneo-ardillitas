@@ -1,8 +1,12 @@
+import type { TournamentCategorySlug } from "@/lib/tournament-categories";
+
 export type Team = {
   id: string;
   name: string;
   slug: string;
   group: string;
+  category?: TournamentCategorySlug;
+  yearLabel?: string;
   logoUrl?: string | null;
 };
 
@@ -12,6 +16,8 @@ export type Match = {
   id: string;
   phase: MatchPhase;
   roundLabel?: string;
+  category: TournamentCategorySlug;
+  yearLabel: string;
   homeTeam: Team;
   awayTeam: Team;
   homeScore?: number | null;

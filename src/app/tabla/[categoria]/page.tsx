@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ContentSection } from "@/components/content-section";
 import { PageBackground } from "@/components/page-background";
 import { StandingsTable } from "@/components/standings-table";
-import { mockStandingsByCategory } from "@/lib/standings-data";
+import { getStandingsForCategory } from "@/lib/content";
 import {
   isTournamentCategorySlug,
   standingsConfig,
@@ -19,14 +19,14 @@ export function generateStaticParams() {
   return tournamentCategories.map((category) => ({ categoria: category.slug }));
 }
 
-export default function TablaCategoriaPage({ params }: TablaCategoriaPageProps) {
+export default async function TablaCategoriaPage({ params }: TablaCategoriaPageProps) {
   if (!isTournamentCategorySlug(params.categoria)) {
     notFound();
   }
 
   const category = tournamentCategories.find((item) => item.slug === params.categoria)!;
   const yearCategories = standingsConfig[params.categoria];
-  const standingsData = mockStandingsByCategory[params.categoria];
+  const standingsData = await getStandingsForCategory(params.categoria);
 
   return (
     <PageBackground imageKey="hero" className="min-h-[40vh]">
