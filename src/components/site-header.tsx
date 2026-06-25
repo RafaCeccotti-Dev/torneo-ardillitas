@@ -101,14 +101,14 @@ export function SiteFooter() {
                   href={sponsor.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 opacity-90 transition hover:opacity-100"
+                  className="group shrink-0"
                   title={sponsor.name}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={sponsor.logo}
                     alt={sponsor.name}
-                    className="h-14 w-auto max-w-[140px] object-contain sm:h-16 sm:max-w-[160px] md:h-[72px] md:max-w-[180px]"
+                    className="h-[4.5rem] w-auto max-w-[180px] object-contain opacity-75 brightness-0 invert transition duration-200 group-hover:opacity-100 sm:h-20 sm:max-w-[210px] md:h-[5.5rem] md:max-w-[240px]"
                   />
                 </a>
               ))}
