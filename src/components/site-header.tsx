@@ -108,7 +108,11 @@ export function SiteFooter() {
                   <img
                     src={sponsor.logo}
                     alt={sponsor.name}
-                    className="h-[4.5rem] w-auto max-w-[180px] object-contain opacity-75 brightness-0 invert transition duration-200 group-hover:opacity-100 sm:h-20 sm:max-w-[210px] md:h-[5.5rem] md:max-w-[240px]"
+                    className={cn(
+                      "h-[4.5rem] w-auto max-w-[200px] object-contain opacity-85 transition duration-200 group-hover:opacity-100 sm:h-20 sm:max-w-[230px] md:h-[5.5rem] md:max-w-[260px]",
+                      !("monochrome" in sponsor && sponsor.monochrome) &&
+                        "brightness-0 invert",
+                    )}
                   />
                 </a>
               ))}

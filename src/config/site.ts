@@ -52,29 +52,22 @@ export const siteConfig = {
   /** Auspiciantes fijos en código — no se editan desde el panel */
   sponsors: [
     {
-      name: "Calzados Frank",
-      logo: "/auspiciantes/calzados-frank.png",
-      href: "https://www.instagram.com/calzados_frank/",
-    },
-    {
       name: "Cellshop",
-      logo: "/auspiciantes/cellshop.png",
+      logo: "/auspiciantes/cellshop-mono.png",
       href: "https://www.instagram.com/cellshop.ceres/",
-    },
-    {
-      name: "Piwi encomiendas",
-      logo: "/auspiciantes/piwi-encomiendas.png",
-      href: "https://www.instagram.com/piwiencomiendas/",
+      monochrome: true,
     },
     {
       name: "Vida Plus",
-      logo: "/auspiciantes/vida-plus.png",
+      logo: "/auspiciantes/vida-plus-mono.png",
       href: "https://www.instagram.com/detodounpoco.vp/",
+      monochrome: true,
     },
     {
-      name: "Mundo Rodados",
-      logo: "/auspiciantes/mundo-rodados.png",
-      href: "https://www.instagram.com/mundo.rodados/",
+      name: "Piwi encomiendas",
+      logo: "/auspiciantes/piwi-mono.png",
+      href: "https://www.instagram.com/piwiencomiendas/",
+      monochrome: true,
     },
   ],
 } as const;
