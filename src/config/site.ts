@@ -53,12 +53,12 @@ export const siteConfig = {
   sponsors: [
     {
       name: "Calzados Frank",
-      logo: "/auspiciantes/calzados-frank.jpeg",
+      logo: "/auspiciantes/calzados-frank.png",
       href: "https://www.instagram.com/calzados_frank/",
     },
     {
       name: "Cellshop",
-      logo: "/auspiciantes/cellshop.jpeg",
+      logo: "/auspiciantes/cellshop.png",
       href: "https://www.instagram.com/cellshop.ceres/",
     },
     {

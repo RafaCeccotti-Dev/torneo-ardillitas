@@ -89,30 +89,30 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-yellow-400/20 bg-black px-4 py-10 text-center text-sm text-white/70">
       {siteConfig.sponsors.length > 0 ? (
-        <div className="mx-auto mb-8 max-w-4xl">
+        <div className="mx-auto mb-8 w-full max-w-6xl">
           <p className="font-display mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
             Auspiciantes
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-5 md:gap-8">
-            {siteConfig.sponsors.map((sponsor) => (
-              <a
-                key={sponsor.name}
-                href={sponsor.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="opacity-95 transition hover:opacity-100 hover:scale-[1.02]"
-                title={sponsor.name}
-              >
-                <div className="flex h-28 w-44 items-center justify-center rounded-2xl bg-white/95 px-4 py-3 shadow-lg sm:h-32 sm:w-52 md:h-36 md:w-60">
+          <div className="overflow-x-auto pb-2">
+            <div className="flex min-w-max items-center justify-center gap-8 px-2 md:gap-10 lg:gap-12">
+              {siteConfig.sponsors.map((sponsor) => (
+                <a
+                  key={sponsor.name}
+                  href={sponsor.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 opacity-90 transition hover:opacity-100"
+                  title={sponsor.name}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={sponsor.logo}
                     alt={sponsor.name}
-                    className="max-h-full max-w-full object-contain"
+                    className="h-14 w-auto max-w-[140px] object-contain sm:h-16 sm:max-w-[160px] md:h-[72px] md:max-w-[180px]"
                   />
-                </div>
-              </a>
-            ))}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}
