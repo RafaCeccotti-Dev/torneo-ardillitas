@@ -93,17 +93,17 @@ export function SiteFooter() {
           <p className="font-display mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
             Auspiciantes
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+          <div className="flex flex-wrap items-center justify-center gap-5 md:gap-8">
             {siteConfig.sponsors.map((sponsor) => (
               <a
                 key={sponsor.name}
                 href={sponsor.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="opacity-90 transition hover:opacity-100"
+                className="opacity-95 transition hover:opacity-100 hover:scale-[1.02]"
                 title={sponsor.name}
               >
-                <div className="flex h-24 w-36 items-center justify-center rounded-xl bg-white/95 p-3 sm:h-28 sm:w-44">
+                <div className="flex h-28 w-44 items-center justify-center rounded-2xl bg-white/95 px-4 py-3 shadow-lg sm:h-32 sm:w-52 md:h-36 md:w-60">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={sponsor.logo}

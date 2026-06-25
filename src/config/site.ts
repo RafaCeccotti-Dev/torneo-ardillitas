@@ -45,24 +45,6 @@ export const siteConfig = {
       message: "Hola, consulto por la inscripción al Torneo Ardillitas.",
     },
   ],
-  /** Auspiciantes de la sección de preinscripción en el inicio */
-  preinscripcionSponsors: [
-    {
-      name: "Piwi encomiendas",
-      logo: "/auspiciantes/piwi-encomiendas.png",
-      href: "https://www.instagram.com/piwiencomiendas/",
-    },
-    {
-      name: "Vida Plus",
-      logo: "/auspiciantes/vida-plus.png",
-      href: "https://www.instagram.com/detodounpoco.vp/",
-    },
-    {
-      name: "Mundo Rodados",
-      logo: "/auspiciantes/mundo-rodados.png",
-      href: "https://www.instagram.com/mundo.rodados/",
-    },
-  ],
   logos: {
     header: "/logos/ardillita-pelota.png",
     mascot: "/logos/ardillita-celebrando.png",
@@ -78,6 +60,21 @@ export const siteConfig = {
       name: "Cellshop",
       logo: "/auspiciantes/cellshop.jpeg",
       href: "https://www.instagram.com/cellshop.ceres/",
+    },
+    {
+      name: "Piwi encomiendas",
+      logo: "/auspiciantes/piwi-encomiendas.png",
+      href: "https://www.instagram.com/piwiencomiendas/",
+    },
+    {
+      name: "Vida Plus",
+      logo: "/auspiciantes/vida-plus.png",
+      href: "https://www.instagram.com/detodounpoco.vp/",
+    },
+    {
+      name: "Mundo Rodados",
+      logo: "/auspiciantes/mundo-rodados.png",
+      href: "https://www.instagram.com/mundo.rodados/",
     },
   ],
 } as const;
