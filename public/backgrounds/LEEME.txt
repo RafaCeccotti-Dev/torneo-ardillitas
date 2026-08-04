@@ -1,0 +1,15 @@
+Fotos de fondo del torneo (las que pasó el coordinador del club)
+
+Copiá acá tus imágenes JPG o WEBP con estos nombres:
+
+  hero.jpg       → portada principal (home)
+  partidos.jpg   → sección Partidos (opcional)
+  tabla.jpg      → sección Tabla (opcional)
+  fotos.jpg      → sección Galería (opcional)
+  ubicaciones.jpg
+  club.jpg       → mapa del club
+  reglamento.jpg
+
+Mínimo: hero.jpg para que la home tenga fondo.
+
+Si falta alguna, la página usa un degradado verde del club.
