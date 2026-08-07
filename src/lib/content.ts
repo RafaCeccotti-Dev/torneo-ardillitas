@@ -1,10 +1,9 @@
 import type { GalleryPhoto, Match, Team } from "@/lib/types";
 import { computeStandingsByGroup } from "@/lib/standings";
-import { seedTeams } from "@/lib/teams-seed";
-import { mockStandingsByCategory, type StandingsByYear } from "@/lib/standings-data";
+import type { StandingsByYear } from "@/lib/standings-data";
 import type { TournamentCategorySlug } from "@/lib/tournament-categories";
 import { standingsConfig } from "@/lib/tournament-categories";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { createPublicClient, isSupabaseConfigured } from "@/lib/supabase/public";
 
 export type ReglamentoFile = {
   url: string;
@@ -19,6 +18,7 @@ type TeamRow = {
   year_label: string;
   group_name: string;
   sort_order: number;
+  logo_path?: string | null;
 };
 
 type MatchRow = {
@@ -36,6 +36,12 @@ type MatchRow = {
   status: Match["status"];
 };
 
+function publicLogoUrl(logoPath: string | null | undefined): string | null {
+  if (!logoPath || !isSupabaseConfigured()) return null;
+  const supabase = createPublicClient();
+  return supabase.storage.from("escudos").getPublicUrl(logoPath).data.publicUrl;
+}
+
 function mapTeam(row: TeamRow): Team {
   return {
     id: row.id,
@@ -44,19 +50,7 @@ function mapTeam(row: TeamRow): Team {
     group: row.group_name,
     category: row.category as TournamentCategorySlug,
     yearLabel: row.year_label,
-    logoUrl: null,
-  };
-}
-
-function seedTeamToTeam(seed: (typeof seedTeams)[number], id: string): Team {
-  return {
-    id,
-    name: seed.name,
-    slug: seed.slug,
-    group: seed.group,
-    category: seed.category,
-    yearLabel: seed.yearLabel,
-    logoUrl: null,
+    logoUrl: publicLogoUrl(row.logo_path),
   };
 }
 
@@ -81,37 +75,30 @@ export async function getTeams(filters?: {
   category?: TournamentCategorySlug;
   yearLabel?: string;
 }): Promise<Team[]> {
-  if (!isSupabaseConfigured()) {
-    return seedTeams
-      .filter((team) => {
-        if (filters?.category && team.category !== filters.category) return false;
-        if (filters?.yearLabel && team.yearLabel !== filters.yearLabel) return false;
-        return true;
-      })
-      .map((team, index) => seedTeamToTeam(team, `seed-${team.slug}-${index}`));
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = createPublicClient();
+
+  async function fetchTeams(includeLogo: boolean) {
+    const columns = includeLogo
+      ? "id, name, slug, category, year_label, group_name, sort_order, logo_path"
+      : "id, name, slug, category, year_label, group_name, sort_order";
+
+    let query = supabase.from("teams").select(columns).order("sort_order", { ascending: true });
+
+    if (filters?.category) query = query.eq("category", filters.category);
+    if (filters?.yearLabel) query = query.eq("year_label", filters.yearLabel);
+    return query;
   }
 
-  const supabase = createClient();
-  let query = supabase
-    .from("teams")
-    .select("id, name, slug, category, year_label, group_name, sort_order")
-    .order("sort_order", { ascending: true });
-
-  if (filters?.category) query = query.eq("category", filters.category);
-  if (filters?.yearLabel) query = query.eq("year_label", filters.yearLabel);
-
-  const { data, error } = await query;
-  if (error || !data?.length) {
-    return seedTeams
-      .filter((team) => {
-        if (filters?.category && team.category !== filters.category) return false;
-        if (filters?.yearLabel && team.yearLabel !== filters.yearLabel) return false;
-        return true;
-      })
-      .map((team, index) => seedTeamToTeam(team, `seed-${team.slug}-${index}`));
+  let { data, error } = await fetchTeams(true);
+  if (error?.message?.includes("logo_path")) {
+    ({ data, error } = await fetchTeams(false));
   }
 
-  return (data as TeamRow[]).map(mapTeam);
+  if (error || !data?.length) return [];
+
+  return (data as unknown as TeamRow[]).map(mapTeam);
 }
 
 export async function getMatches(filters?: {
@@ -120,7 +107,12 @@ export async function getMatches(filters?: {
 }): Promise<Match[]> {
   if (!isSupabaseConfigured()) return [];
 
-  const supabase = createClient();
+  // Fixture oculto hasta que el coordinador publique partidos reales.
+  // Evita mostrar datos de prueba cargados en Supabase.
+  const publishFixture = process.env.PUBLISH_FIXTURE === "true";
+  if (!publishFixture) return [];
+
+  const supabase = createPublicClient();
   let query = supabase
     .from("matches")
     .select(
@@ -142,7 +134,7 @@ export async function getMatches(filters?: {
 
   const { data: teamRows, error: teamsError } = await supabase
     .from("teams")
-    .select("id, name, slug, category, year_label, group_name, sort_order")
+    .select("id, name, slug, category, year_label, group_name, sort_order, logo_path")
     .in("id", teamIds);
 
   if (teamsError || !teamRows?.length) return [];
@@ -162,7 +154,6 @@ export async function getMatches(filters?: {
 export async function getStandingsForCategory(
   category: TournamentCategorySlug,
 ): Promise<StandingsByYear> {
-  const fallback = mockStandingsByCategory[category];
   const teams = await getTeams({ category });
   const matches = await getMatches({ category });
   const result: StandingsByYear = {};
@@ -170,16 +161,12 @@ export async function getStandingsForCategory(
   for (const yearCategory of standingsConfig[category]) {
     const yearLabel = yearCategory.label;
     const yearTeams = teams.filter((team) => team.yearLabel === yearLabel);
+    if (yearTeams.length === 0) continue;
+
     const yearMatches = matches.filter(
       (match) => match.yearLabel === yearLabel && match.phase === "grupos",
     );
-
-    if (yearTeams.length > 0) {
-      result[yearLabel] = computeStandingsByGroup(yearTeams, yearMatches);
-      continue;
-    }
-
-    result[yearLabel] = fallback[yearLabel] ?? {};
+    result[yearLabel] = computeStandingsByGroup(yearTeams, yearMatches);
   }
 
   return result;
@@ -188,7 +175,7 @@ export async function getStandingsForCategory(
 export async function getGalleryPhotos(): Promise<GalleryPhoto[]> {
   if (!isSupabaseConfigured()) return [];
 
-  const supabase = createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("gallery_photos")
     .select("id, storage_path, caption, sort_order")
@@ -206,7 +193,7 @@ export async function getGalleryPhotos(): Promise<GalleryPhoto[]> {
 export async function getReglamentoFile(): Promise<ReglamentoFile> {
   if (!isSupabaseConfigured()) return null;
 
-  const supabase = createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("site_documents")
     .select("storage_path, updated_at")

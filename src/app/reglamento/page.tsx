@@ -6,6 +6,8 @@ import { PageBackground } from "@/components/page-background";
 import { getReglamentoFile } from "@/lib/content";
 import { regulation } from "@/lib/mock-data";
 
+export const revalidate = 60;
+
 export default async function ReglamentoPage() {
   const reglamento = await getReglamentoFile();
 

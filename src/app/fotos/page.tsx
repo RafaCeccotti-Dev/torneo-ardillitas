@@ -3,9 +3,12 @@ import Link from "next/link";
 import { Camera, ExternalLink } from "lucide-react";
 
 import { ContentSection } from "@/components/content-section";
+import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PageBackground } from "@/components/page-background";
 import { siteConfig } from "@/config/site";
 import { getGalleryPhotos } from "@/lib/content";
+
+export const dynamic = "force-dynamic";
 
 export default async function FotosPage() {
   const photos = await getGalleryPhotos();
@@ -15,28 +18,10 @@ export default async function FotosPage() {
     <PageBackground imageKey="hero" className="min-h-[40vh]">
       <ContentSection
         title="Fotos del torneo"
-        description="Galería de imágenes del torneo y momentos destacados."
+        description="Galería de imágenes del torneo y momentos destacados. Tocá una foto para verla en grande."
       >
         {hasPhotos ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {photos.map((photo) => (
-              <figure
-                key={photo.id}
-                className="overflow-hidden rounded-2xl border border-yellow-400/15 bg-black/50"
-              >
-                <div className="relative aspect-[4/3]">
-                  <Image
-                    src={photo.src}
-                    alt={photo.caption}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                </div>
-                <figcaption className="p-3 text-sm text-white/80">{photo.caption}</figcaption>
-              </figure>
-            ))}
-          </div>
+          <GalleryLightbox photos={photos} />
         ) : (
           <div className="flex flex-col items-center rounded-2xl border border-dashed border-yellow-400/25 bg-yellow-400/5 px-6 py-14 text-center">
             <div className="relative mb-6 h-24 w-24 opacity-90">
@@ -53,8 +38,8 @@ export default async function FotosPage() {
               Galería en preparación
             </h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-white/70">
-              Todavía no hay fotos publicadas. Cuando el coordinador cargue imágenes del
-              torneo, van a aparecer acá.
+              Todavía no hay fotos publicadas. Cuando se carguen imágenes del torneo, las
+              vas a encontrar acá.
             </p>
           </div>
         )}

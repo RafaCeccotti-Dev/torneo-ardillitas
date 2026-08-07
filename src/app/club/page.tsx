@@ -1,30 +1,24 @@
-import Image from "next/image";
-
 import { ContentSection } from "@/components/content-section";
 import { PageBackground } from "@/components/page-background";
 import { siteConfig } from "@/config/site";
-import { clubMapImage } from "@/lib/mock-data";
+import { formatEdition } from "@/lib/edition";
 
 export default function ClubPage() {
   return (
     <PageBackground imageKey="club" className="min-h-[40vh]">
       <ContentSection
         title="El club"
-        description={`Plano del predio del ${siteConfig.club} en Ceres.`}
+        description={`Predio del ${siteConfig.club} en Ceres.`}
       >
-        <div className="overflow-hidden rounded-2xl border border-yellow-400/15 bg-neutral-950">
-          <Image
-            src={clubMapImage}
-            alt="Plano del Club Central Argentino Olímpico"
-            width={1400}
-            height={1000}
-            className="h-auto w-full"
-            sizes="(max-width: 1200px) 100vw, 960px"
-          />
+        <div className="rounded-2xl border border-dashed border-yellow-400/30 bg-black/40 p-8 text-center sm:p-12">
+          <p className="font-display text-lg font-semibold uppercase tracking-wide text-yellow-400">
+            Plano próximamente
+          </p>
+          <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-white/75">
+            El plano del club será publicado próximamente para orientarte durante la
+            edición {formatEdition()} del torneo &quot;Ardillitas&quot;.
+          </p>
         </div>
-        <p className="mt-4 text-sm text-white/65">
-          Plano de referencia del club para orientarse durante el torneo.
-        </p>
       </ContentSection>
     </PageBackground>
   );

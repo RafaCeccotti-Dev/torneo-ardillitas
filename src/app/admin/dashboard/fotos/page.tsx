@@ -3,6 +3,8 @@ import { FotosUpload } from "@/components/admin/fotos-upload";
 import { ContentSection } from "@/components/content-section";
 import { getGalleryPhotos } from "@/lib/content";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminFotosPage() {
   const photos = await getGalleryPhotos();
 

@@ -11,7 +11,16 @@ export default function AdminDashboardPage() {
         description="Gestioná el contenido publicado en la web del torneo."
       >
         <AdminNav />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/admin/dashboard/equipos"
+            className="rounded-2xl border border-yellow-400/15 bg-white/5 p-6 transition hover:border-yellow-400/40"
+          >
+            <h2 className="font-display text-lg font-bold uppercase text-white">Equipos</h2>
+            <p className="mt-2 text-sm text-white/70">
+              Cargar equipos por categoría, grupo y escudo.
+            </p>
+          </Link>
           <Link
             href="/admin/dashboard/partidos"
             className="rounded-2xl border border-yellow-400/15 bg-white/5 p-6 transition hover:border-yellow-400/40"

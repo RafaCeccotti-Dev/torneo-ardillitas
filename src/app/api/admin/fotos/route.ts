@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
@@ -19,6 +20,11 @@ async function requireAuth() {
   return { supabase };
 }
 
+function revalidateFotosPages() {
+  revalidatePath("/fotos");
+  revalidatePath("/admin/dashboard/fotos");
+}
+
 export async function POST(request: Request) {
   const auth = await requireAuth();
   if ("error" in auth && auth.error) return auth.error;
@@ -36,7 +42,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Solo se permiten imágenes" }, { status: 400 });
   }
 
-  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const extension =
+    file.name.split(".").pop()?.toLowerCase()?.replace(/[^a-z0-9]/g, "") || "jpg";
   const storagePath = `${crypto.randomUUID()}.${extension}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -66,9 +73,11 @@ export async function POST(request: Request) {
     .single();
 
   if (dbError) {
+    await supabase.storage.from("galeria").remove([storagePath]);
     return NextResponse.json({ error: dbError.message }, { status: 500 });
   }
 
+  revalidateFotosPages();
   return NextResponse.json({ ok: true, id: data.id });
 }
 
@@ -99,5 +108,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });
   }
 
+  revalidateFotosPages();
   return NextResponse.json({ ok: true });
 }

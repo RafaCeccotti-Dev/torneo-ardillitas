@@ -8,13 +8,11 @@ import { PreinscripcionBanner } from "@/components/preinscripcion-banner";
 import { siteConfig } from "@/config/site";
 import { getMatches } from "@/lib/content";
 import { formatEdition } from "@/lib/edition";
-import { mockMatches } from "@/lib/mock-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function HomePage() {
-  const loadedMatches = await getMatches();
-  const matches = loadedMatches.length ? loadedMatches : mockMatches;
+  const matches = await getMatches();
   const upcoming = matches.filter((match) => match.status === "programado").slice(0, 2);
 
   return (
@@ -63,15 +61,14 @@ export default async function HomePage() {
       <PreinscripcionBanner />
 
       <div className="bg-black">
-        <ContentSection
-          title="Próximos partidos"
-          description="Datos del torneo — el coordinador los actualiza desde el panel."
-        >
+        <ContentSection title="Próximos partidos">
           <div className="grid gap-4 md:grid-cols-2">
             {upcoming.length > 0 ? (
               upcoming.map((match) => <MatchCard key={match.id} match={match} />)
             ) : (
-              <p className="text-white/70">No hay partidos programados por ahora.</p>
+              <p className="rounded-xl border border-dashed border-yellow-400/25 p-6 text-white/70 md:col-span-2">
+                Los partidos se publicarán en fechas cercanas al comienzo del torneo.
+              </p>
             )}
           </div>
         </ContentSection>

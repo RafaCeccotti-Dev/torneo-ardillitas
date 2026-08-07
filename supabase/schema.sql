@@ -23,6 +23,7 @@ create table if not exists teams (
   year_label text not null,
   group_name text not null,
   sort_order int not null default 0,
+  logo_path text,
   created_at timestamptz not null default now(),
   unique (slug, category, year_label)
 );
@@ -101,6 +102,7 @@ on conflict (slug, category, year_label) do nothing;
 
 -- Storage → New bucket: reglamento (public)
 -- Storage → New bucket: galeria (public)
+-- Storage → New bucket: escudos (public)
 -- Policies en cada bucket:
 --   SELECT: public
 --   INSERT/UPDATE/DELETE: authenticated

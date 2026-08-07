@@ -11,7 +11,7 @@ import {
   tournamentCategories,
 } from "@/lib/tournament-categories";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type TablaCategoriaPageProps = {
   params: { categoria: string };
@@ -26,15 +26,17 @@ export default async function TablaCategoriaPage({ params }: TablaCategoriaPageP
     notFound();
   }
 
-  const category = tournamentCategories.find((item) => item.slug === params.categoria)!;
-  const yearCategories = standingsConfig[params.categoria];
-  const standingsData = await getStandingsForCategory(params.categoria);
+  const categoria = params.categoria;
+  const category = tournamentCategories.find((item) => item.slug === categoria)!;
+  const standings = await getStandingsForCategory(categoria);
+  const yearLabels = Object.keys(standings);
+  const hasTeams = yearLabels.length > 0;
 
   return (
     <PageBackground imageKey="hero" className="min-h-[40vh]">
       <ContentSection
         title={category.title}
-        description="Posiciones por categoría de nacimiento y grupo. Se actualiza cuando el coordinador carga resultados."
+        description="Posiciones por categoría de nacimiento y grupo."
       >
         <Link
           href="/tabla"
@@ -43,28 +45,45 @@ export default async function TablaCategoriaPage({ params }: TablaCategoriaPageP
           ← Elegir masculino o femenino
         </Link>
 
-        <div className="space-y-12">
-          {yearCategories.map((yearCategory) => (
-            <section key={yearCategory.label}>
-              <h2 className="font-display mb-6 border-b border-yellow-400/25 pb-3 text-2xl font-bold uppercase tracking-wide text-yellow-400 md:text-3xl">
-                Categoría {yearCategory.label}
-              </h2>
-              <div className="grid gap-6">
-                {yearCategory.groups.map((group) => {
-                  const rows = standingsData[yearCategory.label]?.[group] ?? [];
+        {!hasTeams ? (
+          <div className="rounded-2xl border border-dashed border-yellow-400/30 bg-black/40 p-8 text-center sm:p-12">
+            <p className="font-display text-lg font-semibold uppercase tracking-wide text-yellow-400">
+              Tablas próximamente
+            </p>
+            <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-white/75">
+              Las tablas de posiciones se cargarán antes de comenzar el torneo, cuando
+              estén definidos los grupos y los equipos.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-10">
+            {yearLabels.map((yearLabel) => {
+              const groupsByConfig =
+                standingsConfig[categoria].find((item) => item.label === yearLabel)?.groups ??
+                Object.keys(standings[yearLabel]);
+              const groups = Array.from(
+                new Set([...groupsByConfig, ...Object.keys(standings[yearLabel])]),
+              ).sort();
 
-                  return (
-                    <StandingsTable
-                      key={`${yearCategory.label}-${group}`}
-                      group={group}
-                      rows={rows}
-                    />
-                  );
-                })}
-              </div>
-            </section>
-          ))}
-        </div>
+              return (
+                <section key={yearLabel} className="space-y-4">
+                  <h2 className="font-display text-xl font-semibold uppercase tracking-wide text-yellow-400">
+                    Categoría {yearLabel}
+                  </h2>
+                  <div className="grid gap-4 lg:grid-cols-1">
+                    {groups.map((group) => (
+                      <StandingsTable
+                        key={`${yearLabel}-${group}`}
+                        group={group}
+                        rows={standings[yearLabel][group] ?? []}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        )}
       </ContentSection>
     </PageBackground>
   );

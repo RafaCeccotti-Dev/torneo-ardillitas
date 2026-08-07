@@ -18,7 +18,7 @@ export function TournamentCategoryPicker() {
           </h2>
           <p className="mt-2 text-sm text-white/70">{category.description}</p>
           <span className="mt-4 inline-block text-sm font-medium text-yellow-400 group-hover:text-yellow-300">
-            Ver tabla →
+            Ver categorías →
           </span>
         </Link>
       ))}

@@ -7,7 +7,7 @@ export default function TablaPage() {
     <PageBackground imageKey="hero" className="min-h-[40vh]">
       <ContentSection
         title="Tabla de posiciones"
-        description="Elegí el torneo para ver las posiciones por grupo."
+        description="Elegí masculino o femenino. Las tablas se publicarán antes del torneo."
       >
         <TournamentCategoryPicker />
       </ContentSection>
