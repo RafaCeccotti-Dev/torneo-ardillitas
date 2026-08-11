@@ -124,16 +124,11 @@ export function SiteFooter() {
       ) : null}
 
       <p className="font-display text-lg font-semibold uppercase tracking-wide text-white">
-        {siteConfig.name}
+        {siteConfig.name}{" "}
+        <span className="text-yellow-400">· Edición {formatEdition()}</span>
       </p>
       <p className="mt-2 font-display text-sm uppercase tracking-wider text-white/70">
         {siteConfig.club} · {siteConfig.city}
-      </p>
-      <p className="mt-4 text-xs text-white/50">
-        Edición {formatEdition()} —{" "}
-        <Link href="/admin/login" className="text-white/40 hover:text-yellow-400">
-          Panel coordinador
-        </Link>
       </p>
       <div className="mt-6 flex flex-col items-center gap-3 text-sm text-white/80">
         <a
