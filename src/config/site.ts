@@ -55,6 +55,10 @@ export const siteConfig = {
     instagramHandle: "rafaceccotti_",
     instagramUrl: "https://www.instagram.com/rafaceccotti_/",
   },
+  instagram: {
+    handle: "torneoardillitas",
+    url: "https://www.instagram.com/torneoardillitas/",
+  },
   /** Auspiciantes fijos en código — no se editan desde el panel */
   sponsors: [
     {

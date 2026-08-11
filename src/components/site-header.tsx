@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { InstagramIcon } from "@/components/icons/instagram-icon";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { MobileNav } from "@/components/mobile-nav";
 import { navItems, siteConfig } from "@/config/site";
@@ -134,26 +135,30 @@ export function SiteFooter() {
           Panel coordinador
         </Link>
       </p>
-      <p className="mt-6 text-sm text-white/80">
-        Sitio web:{" "}
+      <div className="mt-6 flex flex-col items-center gap-3 text-sm text-white/80">
         <a
-          href={siteConfig.developer.instagramUrl}
+          href={siteConfig.instagram.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-yellow-400 underline-offset-2 transition hover:text-yellow-300 hover:underline"
+          className="inline-flex items-center gap-2 text-yellow-400 transition hover:text-yellow-300"
         >
-          {siteConfig.developer.name}
+          <InstagramIcon className="h-[18px] w-[18px]" />
+          @{siteConfig.instagram.handle}
         </a>
-        {" · "}
-        <a
-          href={siteConfig.developer.instagramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-yellow-400/90 underline-offset-2 transition hover:text-yellow-300 hover:underline"
-        >
-          @{siteConfig.developer.instagramHandle}
-        </a>
-      </p>
+        <p className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+          <span>Desarrollo:</span>
+          <span className="font-medium text-white">{siteConfig.developer.name}</span>
+          <a
+            href={siteConfig.developer.instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-yellow-400 transition hover:text-yellow-300"
+          >
+            <InstagramIcon className="h-4 w-4" />
+            @{siteConfig.developer.instagramHandle}
+          </a>
+        </p>
+      </div>
     </footer>
   );
 }
