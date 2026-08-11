@@ -134,6 +134,17 @@ export function SiteFooter() {
           Panel coordinador
         </Link>
       </p>
+      <p className="mt-5 text-[11px] text-white/40">
+        © {new Date().getFullYear()} {siteConfig.developer.name} ·{" "}
+        <a
+          href={siteConfig.developer.instagramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white/50 underline-offset-2 transition hover:text-yellow-400 hover:underline"
+        >
+          @{siteConfig.developer.instagramHandle}
+        </a>
+      </p>
     </footer>
   );
 }

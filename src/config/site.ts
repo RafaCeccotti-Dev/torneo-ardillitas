@@ -50,6 +50,11 @@ export const siteConfig = {
     header: "/logos/ardillita-pelota.png",
     mascot: "/logos/ardillita-celebrando.png",
   },
+  developer: {
+    name: "Rafael Ceccotti",
+    instagramHandle: "rafaceccotti_",
+    instagramUrl: "https://www.instagram.com/rafaceccotti_/",
+  },
   /** Auspiciantes fijos en código — no se editan desde el panel */
   sponsors: [
     {
