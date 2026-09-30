@@ -270,7 +270,7 @@ export function PartidosManager() {
               <option value="">Elegir equipo</option>
               {teams.map((team) => (
                 <option key={team.id} value={team.id}>
-                  {team.name} (Grupo {team.group_name})
+                  {team.name} ({team.group_name ? `Grupo ${team.group_name}` : "Sin grupo"})
                 </option>
               ))}
             </select>
@@ -287,7 +287,7 @@ export function PartidosManager() {
               <option value="">Elegir equipo</option>
               {teams.map((team) => (
                 <option key={team.id} value={team.id}>
-                  {team.name} (Grupo {team.group_name})
+                  {team.name} ({team.group_name ? `Grupo ${team.group_name}` : "Sin grupo"})
                 </option>
               ))}
             </select>

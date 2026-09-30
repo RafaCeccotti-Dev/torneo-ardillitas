@@ -17,7 +17,7 @@ type TeamRow = {
 const emptyForm = {
   category: "masculino",
   yearLabel: "2015",
-  groupName: "A",
+  groupName: "",
   customGroup: "",
   name: "",
 };
@@ -43,7 +43,8 @@ export function EquiposManager() {
       yearOptions.find((item) => item.label === form.yearLabel)?.groups ?? ["A", "B", "C"];
     const fromTeams = teams
       .filter((team) => team.category === form.category && team.yearLabel === form.yearLabel)
-      .map((team) => team.groupName);
+      .map((team) => team.groupName)
+      .filter(Boolean);
     return Array.from(new Set([...configured, ...fromTeams])).sort();
   }, [yearOptions, form.yearLabel, form.category, teams]);
 
@@ -99,7 +100,6 @@ export function EquiposManager() {
       ...emptyForm,
       category: prev.category,
       yearLabel: prev.yearLabel,
-      groupName: groupOptions[0] ?? "A",
     }));
     setLogoFile(null);
     setEditingId(null);
@@ -111,14 +111,14 @@ function startEdit(team: TeamRow) {
       standingsConfig[team.category as keyof typeof standingsConfig]
         ?.find((item) => item.label === team.yearLabel)
         ?.groups ?? [];
-    const isCustom = !knownGroups.includes(team.groupName);
+    const isCustom = Boolean(team.groupName) && !knownGroups.includes(team.groupName);
 
     setEditingId(team.id);
     setUseCustomGroup(isCustom);
     setForm({
       category: team.category,
       yearLabel: team.yearLabel,
-      groupName: isCustom ? knownGroups[0] ?? "A" : team.groupName,
+      groupName: isCustom ? "" : team.groupName,
       customGroup: isCustom ? team.groupName : "",
       name: team.name,
     });
@@ -133,8 +133,8 @@ function startEdit(team: TeamRow) {
     setMessage(null);
 
     const groupName = useCustomGroup ? form.customGroup.trim().toUpperCase() : form.groupName;
-    if (!groupName) {
-      setError("Indicá el grupo (A, B, C…).");
+    if (useCustomGroup && !groupName) {
+      setError("Escribí el nombre del grupo nuevo o volvé al listado.");
       setSaving(false);
       return;
     }
@@ -185,7 +185,9 @@ function startEdit(team: TeamRow) {
       list.push(team);
       map.set(team.groupName, list);
     }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+    return Array.from(map.entries()).sort(([a], [b]) =>
+      !a ? -1 : !b ? 1 : a.localeCompare(b),
+    );
   }, [teams]);
 
   return (
@@ -205,7 +207,7 @@ function startEdit(team: TeamRow) {
                 ...prev,
                 category,
                 yearLabel: years[0]?.label ?? "",
-                groupName: years[0]?.groups[0] ?? "A",
+                groupName: "",
               }));
             }}
             className="w-full rounded-xl border border-yellow-400/20 bg-black px-3 py-2.5 text-white outline-none focus:border-yellow-400"
@@ -224,12 +226,10 @@ function startEdit(team: TeamRow) {
             value={form.yearLabel}
             onChange={(event) => {
               const yearLabel = event.target.value;
-              const groups =
-                yearOptions.find((item) => item.label === yearLabel)?.groups ?? ["A"];
               setForm((prev) => ({
                 ...prev,
                 yearLabel,
-                groupName: groups[0] ?? "A",
+                groupName: "",
               }));
             }}
             className="w-full rounded-xl border border-yellow-400/20 bg-black px-3 py-2.5 text-white outline-none focus:border-yellow-400"
@@ -243,7 +243,7 @@ function startEdit(team: TeamRow) {
         </label>
 
         <div className="space-y-1 text-sm text-white/80">
-          <span>Grupo</span>
+          <span>Grupo (opcional)</span>
           {!useCustomGroup ? (
             <select
               value={form.groupName}
@@ -257,6 +257,7 @@ function startEdit(team: TeamRow) {
               }}
               className="w-full rounded-xl border border-yellow-400/20 bg-black px-3 py-2.5 text-white outline-none focus:border-yellow-400"
             >
+              <option value="">Sin grupo (se define después)</option>
               {groupOptions.map((group) => (
                 <option key={group} value={group}>
                   Grupo {group}
@@ -283,7 +284,7 @@ function startEdit(team: TeamRow) {
                 type="button"
                 onClick={() => {
                   setUseCustomGroup(false);
-                  setForm((prev) => ({ ...prev, groupName: groupOptions[0] ?? "A" }));
+                  setForm((prev) => ({ ...prev, groupName: "" }));
                 }}
                 className="rounded-xl border border-white/20 px-3 text-xs text-white/70 hover:bg-white/10"
               >
@@ -354,7 +355,14 @@ function startEdit(team: TeamRow) {
               className="overflow-hidden rounded-2xl border border-yellow-400/15 bg-black/40"
             >
               <div className="border-b border-white/10 px-4 py-3">
-                <h3 className="font-semibold text-white">Grupo {group}</h3>
+                <h3 className="font-semibold text-white">
+                  {group ? `Grupo ${group}` : "Sin grupo asignado"}
+                </h3>
+                {!group ? (
+                  <p className="mt-0.5 text-xs text-white/50">
+                    Tocá “Editar” para asignarles el grupo cuando se armen.
+                  </p>
+                ) : null}
               </div>
               <ul className="divide-y divide-white/10">
                 {groupTeams.map((team) => (

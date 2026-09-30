@@ -2,16 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { InstagramIcon } from "@/components/icons/instagram-icon";
-import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { MobileNav } from "@/components/mobile-nav";
+import { SponsorsMarquee } from "@/components/sponsors-marquee";
 import { navItems, siteConfig } from "@/config/site";
 import { formatEdition } from "@/lib/edition";
 import { cn } from "@/lib/utils";
-
-function whatsappUrl() {
-  const text = encodeURIComponent(siteConfig.whatsapp.message);
-  return `https://wa.me/${siteConfig.whatsapp.number}?text=${text}`;
-}
 
 export function SiteHeader({ className }: { className?: string }) {
   return (
@@ -44,6 +39,13 @@ export function SiteHeader({ className }: { className?: string }) {
             </div>
           </Link>
 
+          {siteConfig.sponsors.length > 0 ? (
+            <SponsorsMarquee
+              variant="header"
+              className="hidden min-w-0 max-w-xl flex-1 md:block"
+            />
+          ) : null}
+
           <div className="flex shrink-0 items-center gap-2">
             <a
               href={siteConfig.preinscripcionFormUrl}
@@ -53,19 +55,7 @@ export function SiteHeader({ className }: { className?: string }) {
             >
               Preinscripción
             </a>
-            <a
-              href={whatsappUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden items-center gap-2 rounded-full bg-yellow-400 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-black transition hover:bg-yellow-300 sm:inline-flex"
-            >
-              <WhatsAppIcon />
-              WhatsApp
-            </a>
-            <MobileNav
-              preinscripcionUrl={siteConfig.preinscripcionFormUrl}
-              whatsappUrl={whatsappUrl()}
-            />
+            <MobileNav preinscripcionUrl={siteConfig.preinscripcionFormUrl} />
           </div>
         </div>
 
@@ -95,31 +85,7 @@ export function SiteFooter() {
           <p className="font-display mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
             Auspiciantes
           </p>
-          <div className="overflow-x-auto pb-2">
-            <div className="flex min-w-max items-center justify-center gap-8 px-2 md:gap-10 lg:gap-12">
-              {siteConfig.sponsors.map((sponsor) => (
-                <a
-                  key={sponsor.name}
-                  href={sponsor.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group shrink-0"
-                  title={sponsor.name}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={sponsor.logo}
-                    alt={sponsor.name}
-                    className={cn(
-                      "h-[4.5rem] w-auto max-w-[200px] object-contain opacity-85 transition duration-200 group-hover:opacity-100 sm:h-20 sm:max-w-[230px] md:h-[5.5rem] md:max-w-[260px]",
-                      !("monochrome" in sponsor && sponsor.monochrome) &&
-                        "brightness-0 invert",
-                    )}
-                  />
-                </a>
-              ))}
-            </div>
-          </div>
+          <SponsorsMarquee variant="footer" className="pb-2" />
         </div>
       ) : null}
 

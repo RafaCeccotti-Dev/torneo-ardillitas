@@ -5,15 +5,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 
-import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { navItems } from "@/config/site";
 
 type MobileNavProps = {
   preinscripcionUrl: string;
-  whatsappUrl: string;
 };
 
-export function MobileNav({ preinscripcionUrl, whatsappUrl }: MobileNavProps) {
+export function MobileNav({ preinscripcionUrl }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -60,16 +58,6 @@ export function MobileNav({ preinscripcionUrl, whatsappUrl }: MobileNavProps) {
               className="block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
             >
               Preinscripción
-            </a>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setOpen(false)}
-              className="mt-1 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
-            >
-              <WhatsAppIcon />
-              WhatsApp
             </a>
           </div>
         </>

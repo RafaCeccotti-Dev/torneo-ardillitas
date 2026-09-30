@@ -160,7 +160,7 @@ export async function getStandingsForCategory(
 
   for (const yearCategory of standingsConfig[category]) {
     const yearLabel = yearCategory.label;
-    const yearTeams = teams.filter((team) => team.yearLabel === yearLabel);
+    const yearTeams = teams.filter((team) => team.yearLabel === yearLabel && team.group);
     if (yearTeams.length === 0) continue;
 
     const yearMatches = matches.filter(

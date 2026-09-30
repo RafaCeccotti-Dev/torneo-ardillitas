@@ -1,4 +1,4 @@
-import { MessageCircle, Store, BedDouble, ClipboardList, UtensilsCrossed } from "lucide-react";
+import { MessageCircle, BedDouble, ClipboardList, UtensilsCrossed } from "lucide-react";
 
 import { ContentSection } from "@/components/content-section";
 import { PageBackground } from "@/components/page-background";
@@ -6,7 +6,6 @@ import { siteConfig } from "@/config/site";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const icons = {
-  stands: Store,
   alojamientos: BedDouble,
   viandas: UtensilsCrossed,
   inscripciones: ClipboardList,
@@ -19,10 +18,13 @@ export default function InformacionPage() {
         title="Información"
         description="Contactá al equipo del torneo según el tema que necesites."
       >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {siteConfig.infoContacts.map((contact) => {
             const Icon = icons[contact.id as keyof typeof icons] ?? MessageCircle;
-            const url = whatsappUrl(contact.number, contact.message);
+            const links = contact.numbers.flatMap((entry) => {
+              const url = whatsappUrl(entry.number, contact.message);
+              return url ? [{ label: entry.label, url }] : [];
+            });
 
             return (
               <article
@@ -36,16 +38,21 @@ export default function InformacionPage() {
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-white/75">
                   {contact.description}
                 </p>
-                {url ? (
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-display mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold uppercase tracking-wide text-black transition hover:bg-yellow-300"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    WhatsApp
-                  </a>
+                {links.length > 0 ? (
+                  <div className="mt-6 flex flex-col gap-2">
+                    {links.map((link) => (
+                      <a
+                        key={link.url}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-display inline-flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold uppercase tracking-wide text-black transition hover:bg-yellow-300"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
                 ) : (
                   <p className="mt-6 rounded-full border border-dashed border-yellow-400/30 px-5 py-3 text-center text-sm text-white/50">
                     Número próximamente

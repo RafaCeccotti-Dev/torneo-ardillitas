@@ -15,6 +15,27 @@ body {
   font-family: var(--font-barlow-condensed), system-ui, sans-serif;
 }
 
+@keyframes sponsors-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.sponsors-marquee {
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.sponsors-marquee-track {
+  animation: sponsors-marquee var(--marquee-duration, 35s) linear infinite;
+}
+
+.sponsors-marquee:hover .sponsors-marquee-track {
+  animation-play-state: paused;
+}
+
 details > summary::-webkit-details-marker {
   display: none;
 }

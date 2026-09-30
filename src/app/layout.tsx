@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { SiteFooter, SiteHeader } from "@/components/site-header";
+import { AppChrome } from "@/components/app-chrome";
 import { siteConfig } from "@/config/site";
 import { barlowCondensed, inter } from "@/lib/fonts";
 
@@ -19,9 +19,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${barlowCondensed.variable}`}>
       <body className="min-h-screen bg-black font-sans text-white antialiased">
-        <SiteHeader />
-        <main>{children}</main>
-        <SiteFooter />
+        <AppChrome>{children}</AppChrome>
       </body>
     </html>
   );

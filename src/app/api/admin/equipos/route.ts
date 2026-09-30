@@ -146,9 +146,6 @@ export async function POST(request: Request) {
   if (!yearLabel || !standingsConfig[category].some((item) => item.label === yearLabel)) {
     return NextResponse.json({ error: "Año / categoría de nacimiento inválida" }, { status: 400 });
   }
-  if (!groupName) {
-    return NextResponse.json({ error: "El grupo es obligatorio" }, { status: 400 });
-  }
 
   let logoPath: string | null = null;
   if (file instanceof File && file.size > 0) {
@@ -255,9 +252,6 @@ export async function PATCH(request: Request) {
   }
   if (!yearLabel || !standingsConfig[category].some((item) => item.label === yearLabel)) {
     return NextResponse.json({ error: "Año / categoría de nacimiento inválida" }, { status: 400 });
-  }
-  if (!groupName) {
-    return NextResponse.json({ error: "El grupo es obligatorio" }, { status: 400 });
   }
 
   let logoPath = current.logo_path as string | null;

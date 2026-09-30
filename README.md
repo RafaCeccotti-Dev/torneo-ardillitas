@@ -47,6 +47,14 @@ Editá `src/config/site.ts`:
 - `/informacion` Contactos del torneo
 - `/admin/login` Panel del coordinador (reglamento y fotos)
 
+## Acreditación de planteles (DT)
+
+1. Ejecutá `supabase/accreditation.sql` en el SQL Editor de Supabase.
+2. Creá el bucket Storage `acreditacion` (puede ser privado).
+3. Agregá `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` y en Vercel.
+4. En el admin → **Acreditación**, creá un link por club y marcá las categorías.
+5. Copiá el link y pasáselo al DT: `/acreditar/[token]`.
+
 ## Próximos pasos
 
 1. Supabase (equipos, partidos, fotos)
