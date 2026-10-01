@@ -131,7 +131,14 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
-  const yearLabel = String(formData.get("yearLabel") ?? "").trim();
+  const yearLabels = Array.from(
+    new Set(
+      formData
+        .getAll("yearLabel")
+        .map((value) => String(value).trim())
+        .filter(Boolean),
+    ),
+  );
   const groupName = String(formData.get("groupName") ?? "")
     .trim()
     .toUpperCase();
@@ -143,11 +150,14 @@ export async function POST(request: Request) {
   if (!isTournamentCategorySlug(category)) {
     return NextResponse.json({ error: "Categoría inválida" }, { status: 400 });
   }
-  if (!yearLabel || !standingsConfig[category].some((item) => item.label === yearLabel)) {
+  if (yearLabels.length === 0) {
+    return NextResponse.json({ error: "Elegí al menos una categoría (año)" }, { status: 400 });
+  }
+  if (yearLabels.some((yearLabel) => !standingsConfig[category].some((item) => item.label === yearLabel))) {
     return NextResponse.json({ error: "Año / categoría de nacimiento inválida" }, { status: 400 });
   }
 
-  let logoPath: string | null = null;
+  let logo: { buffer: Buffer; type: string; extension: string } | null = null;
   if (file instanceof File && file.size > 0) {
     if (!file.type.startsWith("image/")) {
       return NextResponse.json({ error: "El escudo debe ser JPG o PNG" }, { status: 400 });
@@ -155,52 +165,92 @@ export async function POST(request: Request) {
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       return NextResponse.json({ error: "Solo se permiten JPG, PNG o WebP" }, { status: 400 });
     }
-
-    const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-    logoPath = `${category}/${yearLabel.replace(/\//g, "-")}/${crypto.randomUUID()}.${extension}`;
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const { error: uploadError } = await supabase.storage.from("escudos").upload(logoPath, buffer, {
-      contentType: file.type,
-      upsert: false,
-    });
-
-    if (uploadError) {
-      return NextResponse.json(
-        {
-          error: uploadError.message.includes("Bucket not found")
-            ? "Falta crear el bucket 'escudos' en Supabase Storage (público)."
-            : uploadError.message,
-        },
-        { status: 500 },
-      );
-    }
+    logo = {
+      buffer: Buffer.from(await file.arrayBuffer()),
+      type: file.type,
+      extension: file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg",
+    };
   }
 
-  const { count } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("teams")
-    .select("*", { count: "exact", head: true })
+    .select("year_label, name")
     .eq("category", category)
-    .eq("year_label", yearLabel)
-    .eq("group_name", groupName);
+    .in("year_label", yearLabels);
 
-  const slug = await uniqueSlug(supabase, slugify(name), category, yearLabel);
+  if (existingError) {
+    return NextResponse.json({ error: existingError.message }, { status: 500 });
+  }
 
-  const { data, error } = await supabase
-    .from("teams")
-    .insert({
+  const normalizedName = slugify(name);
+  const skipped = yearLabels.filter((yearLabel) =>
+    (existing ?? []).some(
+      (row) => row.year_label === yearLabel && slugify(row.name) === normalizedName,
+    ),
+  );
+  const toCreate = yearLabels.filter((yearLabel) => !skipped.includes(yearLabel));
+
+  if (toCreate.length === 0) {
+    return NextResponse.json(
+      {
+        error:
+          skipped.length === 1
+            ? `"${name}" ya está cargado en ${skipped[0]}.`
+            : `"${name}" ya está cargado en ${skipped.join(", ")}.`,
+      },
+      { status: 409 },
+    );
+  }
+
+  const uploadedPaths: string[] = [];
+  const rows = [];
+
+  // Cada categoría guarda su propia copia del escudo: al borrar o cambiar el escudo
+  // de un equipo se elimina el archivo, y no debe afectar a las otras categorías.
+  for (const yearLabel of toCreate) {
+    let logoPath: string | null = null;
+    if (logo) {
+      logoPath = `${category}/${yearLabel.replace(/\//g, "-")}/${crypto.randomUUID()}.${logo.extension}`;
+      const { error: uploadError } = await supabase.storage
+        .from("escudos")
+        .upload(logoPath, logo.buffer, { contentType: logo.type, upsert: false });
+
+      if (uploadError) {
+        if (uploadedPaths.length) await supabase.storage.from("escudos").remove(uploadedPaths);
+        return NextResponse.json(
+          {
+            error: uploadError.message.includes("Bucket not found")
+              ? "Falta crear el bucket 'escudos' en Supabase Storage (público)."
+              : uploadError.message,
+          },
+          { status: 500 },
+        );
+      }
+      uploadedPaths.push(logoPath);
+    }
+
+    const { count } = await supabase
+      .from("teams")
+      .select("*", { count: "exact", head: true })
+      .eq("category", category)
+      .eq("year_label", yearLabel)
+      .eq("group_name", groupName);
+
+    rows.push({
       name,
-      slug,
+      slug: await uniqueSlug(supabase, normalizedName, category, yearLabel),
       category,
       year_label: yearLabel,
       group_name: groupName,
       sort_order: count ?? 0,
       logo_path: logoPath,
-    })
-    .select(TEAM_SELECT)
-    .single();
+    });
+  }
+
+  const { data, error } = await supabase.from("teams").insert(rows).select(TEAM_SELECT);
 
   if (error) {
-    if (logoPath) await supabase.storage.from("escudos").remove([logoPath]);
+    if (uploadedPaths.length) await supabase.storage.from("escudos").remove(uploadedPaths);
     return NextResponse.json(
       {
         error: error.message.includes("logo_path")
@@ -212,7 +262,14 @@ export async function POST(request: Request) {
   }
 
   revalidateTournamentPages();
-  return NextResponse.json({ ok: true, team: mapTeam(supabase, data) });
+  const teams = (data ?? []).map((row) => mapTeam(supabase, row));
+  return NextResponse.json({
+    ok: true,
+    team: teams[0],
+    teams,
+    created: toCreate,
+    skipped,
+  });
 }
 
 export async function PATCH(request: Request) {

@@ -16,11 +16,19 @@ type TeamRow = {
 
 const emptyForm = {
   category: "masculino",
+  /** Solo al editar: cada equipo pertenece a una única categoría. */
   yearLabel: "2015",
+  /** Al agregar: se crea una copia del equipo por cada categoría elegida. */
+  yearLabels: [] as string[],
   groupName: "",
   customGroup: "",
   name: "",
 };
+
+function joinLabels(labels: string[]) {
+  if (labels.length <= 1) return labels.join("");
+  return `${labels.slice(0, -1).join(", ")} y ${labels[labels.length - 1]}`;
+}
 
 export function EquiposManager() {
   const [teams, setTeams] = useState<TeamRow[]>([]);
@@ -29,6 +37,7 @@ export function EquiposManager() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [viewYear, setViewYear] = useState(emptyForm.yearLabel);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [useCustomGroup, setUseCustomGroup] = useState(false);
@@ -38,23 +47,28 @@ export function EquiposManager() {
     [form.category],
   );
 
+  const groupYear = editingId
+    ? form.yearLabel
+    : form.yearLabels.length === 1
+      ? form.yearLabels[0]
+      : null;
+
   const groupOptions = useMemo(() => {
+    if (!groupYear) return [];
     const configured =
-      yearOptions.find((item) => item.label === form.yearLabel)?.groups ?? ["A", "B", "C"];
+      yearOptions.find((item) => item.label === groupYear)?.groups ?? ["A", "B", "C"];
     const fromTeams = teams
-      .filter((team) => team.category === form.category && team.yearLabel === form.yearLabel)
+      .filter((team) => team.category === form.category && team.yearLabel === groupYear)
       .map((team) => team.groupName)
       .filter(Boolean);
     return Array.from(new Set([...configured, ...fromTeams])).sort();
-  }, [yearOptions, form.yearLabel, form.category, teams]);
+  }, [yearOptions, groupYear, form.category, teams]);
 
   const loadTeams = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `/api/admin/equipos?category=${form.category}&yearLabel=${encodeURIComponent(form.yearLabel)}`,
-      );
+      const response = await fetch(`/api/admin/equipos?category=${form.category}`);
       const json = await response.json();
       if (!response.ok) throw new Error(json.error ?? "No se pudieron cargar los equipos");
       setTeams(
@@ -83,7 +97,7 @@ export function EquiposManager() {
     } finally {
       setLoading(false);
     }
-  }, [form.category, form.yearLabel]);
+  }, [form.category]);
 
   useEffect(() => {
     void loadTeams();
@@ -93,13 +107,17 @@ export function EquiposManager() {
     if (!yearOptions.some((item) => item.label === form.yearLabel)) {
       setForm((prev) => ({ ...prev, yearLabel: yearOptions[0]?.label ?? "" }));
     }
-  }, [yearOptions, form.yearLabel]);
+    if (!yearOptions.some((item) => item.label === viewYear)) {
+      setViewYear(yearOptions[0]?.label ?? "");
+    }
+  }, [yearOptions, form.yearLabel, viewYear]);
 
   function resetForm() {
     setForm((prev) => ({
       ...emptyForm,
       category: prev.category,
       yearLabel: prev.yearLabel,
+      yearLabels: prev.yearLabels,
     }));
     setLogoFile(null);
     setEditingId(null);
@@ -115,13 +133,14 @@ function startEdit(team: TeamRow) {
 
     setEditingId(team.id);
     setUseCustomGroup(isCustom);
-    setForm({
+    setForm((prev) => ({
       category: team.category,
       yearLabel: team.yearLabel,
+      yearLabels: prev.yearLabels,
       groupName: isCustom ? "" : team.groupName,
       customGroup: isCustom ? team.groupName : "",
       name: team.name,
-    });
+    }));
     setLogoFile(null);
     setMessage(null);
   }
@@ -132,8 +151,18 @@ function startEdit(team: TeamRow) {
     setError(null);
     setMessage(null);
 
-    const groupName = useCustomGroup ? form.customGroup.trim().toUpperCase() : form.groupName;
-    if (useCustomGroup && !groupName) {
+    if (!editingId && form.yearLabels.length === 0) {
+      setError("Elegí al menos una categoría (año).");
+      setSaving(false);
+      return;
+    }
+
+    const groupName = !groupYear
+      ? ""
+      : useCustomGroup
+        ? form.customGroup.trim().toUpperCase()
+        : form.groupName;
+    if (groupYear && useCustomGroup && !groupName) {
       setError("Escribí el nombre del grupo nuevo o volvé al listado.");
       setSaving(false);
       return;
@@ -142,7 +171,11 @@ function startEdit(team: TeamRow) {
     const body = new FormData();
     body.set("name", form.name.trim());
     body.set("category", form.category);
-    body.set("yearLabel", form.yearLabel);
+    if (editingId) {
+      body.set("yearLabel", form.yearLabel);
+    } else {
+      for (const yearLabel of form.yearLabels) body.append("yearLabel", yearLabel);
+    }
     body.set("groupName", groupName);
     if (editingId) body.set("id", editingId);
     if (logoFile) body.set("logo", logoFile);
@@ -155,7 +188,17 @@ function startEdit(team: TeamRow) {
       const json = await response.json();
       if (!response.ok) throw new Error(json.error ?? "No se pudo guardar el equipo");
 
-      setMessage(editingId ? "Equipo actualizado." : "Equipo creado.");
+      if (editingId) {
+        setMessage("Equipo actualizado.");
+      } else {
+        const created: string[] = json.created ?? form.yearLabels;
+        const skipped: string[] = json.skipped ?? [];
+        setMessage(
+          `"${form.name.trim()}" cargado en ${joinLabels(created)}.` +
+            (skipped.length ? ` Ya estaba en ${joinLabels(skipped)}, no se duplicó.` : ""),
+        );
+        if (created.length && !created.includes(viewYear)) setViewYear(created[0]);
+      }
       resetForm();
       await loadTeams();
     } catch (saveError) {
@@ -178,9 +221,15 @@ function startEdit(team: TeamRow) {
     await loadTeams();
   }
 
+  const countsByYear = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const team of teams) counts.set(team.yearLabel, (counts.get(team.yearLabel) ?? 0) + 1);
+    return counts;
+  }, [teams]);
+
   const grouped = useMemo(() => {
     const map = new Map<string, TeamRow[]>();
-    for (const team of teams) {
+    for (const team of teams.filter((item) => item.yearLabel === viewYear)) {
       const list = map.get(team.groupName) ?? [];
       list.push(team);
       map.set(team.groupName, list);
@@ -188,7 +237,24 @@ function startEdit(team: TeamRow) {
     return Array.from(map.entries()).sort(([a], [b]) =>
       !a ? -1 : !b ? 1 : a.localeCompare(b),
     );
-  }, [teams]);
+  }, [teams, viewYear]);
+
+  function toggleYear(yearLabel: string) {
+    setForm((prev) => {
+      const selected = prev.yearLabels.includes(yearLabel)
+        ? prev.yearLabels.filter((item) => item !== yearLabel)
+        : [...prev.yearLabels, yearLabel];
+      return {
+        ...prev,
+        yearLabels: yearOptions.map((item) => item.label).filter((label) => selected.includes(label)),
+        groupName: "",
+      };
+    });
+    setUseCustomGroup(false);
+  }
+
+  const allYearsSelected =
+    yearOptions.length > 0 && yearOptions.every((item) => form.yearLabels.includes(item.label));
 
   return (
     <div className="space-y-8">
@@ -207,8 +273,11 @@ function startEdit(team: TeamRow) {
                 ...prev,
                 category,
                 yearLabel: years[0]?.label ?? "",
+                yearLabels: [],
                 groupName: "",
               }));
+              setViewYear(years[0]?.label ?? "");
+              setUseCustomGroup(false);
             }}
             className="w-full rounded-xl border border-yellow-400/20 bg-black px-3 py-2.5 text-white outline-none focus:border-yellow-400"
           >
@@ -221,30 +290,93 @@ function startEdit(team: TeamRow) {
         </label>
 
         <label className="space-y-1 text-sm text-white/80">
-          <span>Categoría (año)</span>
-          <select
-            value={form.yearLabel}
-            onChange={(event) => {
-              const yearLabel = event.target.value;
-              setForm((prev) => ({
-                ...prev,
-                yearLabel,
-                groupName: "",
-              }));
-            }}
+          <span>Nombre del equipo</span>
+          <input
+            value={form.name}
+            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+            placeholder="Ej: Atlético Ceres A"
+            required
             className="w-full rounded-xl border border-yellow-400/20 bg-black px-3 py-2.5 text-white outline-none focus:border-yellow-400"
-          >
-            {yearOptions.map((year) => (
-              <option key={year.label} value={year.label}>
-                {year.label}
-              </option>
-            ))}
-          </select>
+          />
         </label>
+
+        {editingId ? (
+          <label className="space-y-1 text-sm text-white/80">
+            <span>Categoría (año)</span>
+            <select
+              value={form.yearLabel}
+              onChange={(event) => {
+                const yearLabel = event.target.value;
+                setForm((prev) => ({
+                  ...prev,
+                  yearLabel,
+                  groupName: "",
+                }));
+              }}
+              className="w-full rounded-xl border border-yellow-400/20 bg-black px-3 py-2.5 text-white outline-none focus:border-yellow-400"
+            >
+              {yearOptions.map((year) => (
+                <option key={year.label} value={year.label}>
+                  {year.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <fieldset className="space-y-2 text-sm text-white/80 sm:col-span-2">
+            <legend className="mb-1">
+              Categorías (año) <span className="text-white/50">— podés elegir varias</span>
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {yearOptions.map((year) => {
+                const checked = form.yearLabels.includes(year.label);
+                return (
+                  <label
+                    key={year.label}
+                    className={`flex cursor-pointer select-none items-center gap-2 rounded-full border px-4 py-2 font-semibold transition ${
+                      checked
+                        ? "border-yellow-400 bg-yellow-400 text-black"
+                        : "border-yellow-400/30 bg-black text-white hover:border-yellow-400/70"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleYear(year.label)}
+                      className="sr-only"
+                    />
+                    <span aria-hidden>{checked ? "✓" : "+"}</span>
+                    {year.label}
+                  </label>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => {
+                  setForm((prev) => ({
+                    ...prev,
+                    yearLabels: allYearsSelected ? [] : yearOptions.map((item) => item.label),
+                    groupName: "",
+                  }));
+                  setUseCustomGroup(false);
+                }}
+                className="rounded-full border border-white/20 px-4 py-2 text-xs text-white/70 hover:bg-white/10"
+              >
+                {allYearsSelected ? "Quitar todas" : "Todas"}
+              </button>
+            </div>
+          </fieldset>
+        )}
 
         <div className="space-y-1 text-sm text-white/80">
           <span>Grupo (opcional)</span>
-          {!useCustomGroup ? (
+          {!groupYear ? (
+            <p className="rounded-xl border border-dashed border-yellow-400/20 px-3 py-2.5 text-xs leading-relaxed text-white/55">
+              {form.yearLabels.length > 1
+                ? "Con varias categorías el grupo se asigna después, desde “Editar” en cada una."
+                : "Elegí una categoría para ver los grupos."}
+            </p>
+          ) : !useCustomGroup ? (
             <select
               value={form.groupName}
               onChange={(event) => {
@@ -293,18 +425,6 @@ function startEdit(team: TeamRow) {
             </div>
           )}
         </div>
-
-        <label className="space-y-1 text-sm text-white/80">
-          <span>Nombre del equipo</span>
-          <input
-            value={form.name}
-            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-            placeholder="Ej: Atlético Ceres A"
-            required
-            className="w-full rounded-xl border border-yellow-400/20 bg-black px-3 py-2.5 text-white outline-none focus:border-yellow-400"
-          />
-        </label>
-
         <label className="space-y-1 text-sm text-white/80 sm:col-span-2">
           <span>Escudo (JPG o PNG){editingId ? " — opcional al editar" : ""}</span>
           <input
@@ -340,11 +460,28 @@ function startEdit(team: TeamRow) {
 
       <div className="space-y-4">
         <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-yellow-400">
-          Equipos cargados · {form.category} {form.yearLabel}
+          Equipos cargados · {form.category} {viewYear}
         </h2>
+        <div className="flex flex-wrap gap-2">
+          {yearOptions.map((year) => (
+            <button
+              key={year.label}
+              type="button"
+              onClick={() => setViewYear(year.label)}
+              className={`rounded-full border px-4 py-1.5 text-sm transition ${
+                viewYear === year.label
+                  ? "border-yellow-400 bg-yellow-400/15 font-semibold text-yellow-300"
+                  : "border-white/15 text-white/70 hover:bg-white/10"
+              }`}
+            >
+              {year.label}
+              <span className="ml-1.5 text-xs opacity-70">({countsByYear.get(year.label) ?? 0})</span>
+            </button>
+          ))}
+        </div>
         {loading ? (
           <p className="text-sm text-white/60">Cargando equipos…</p>
-        ) : teams.length === 0 ? (
+        ) : grouped.length === 0 ? (
           <p className="rounded-xl border border-dashed border-yellow-400/25 p-5 text-sm text-white/65">
             Todavía no hay equipos en esta categoría. Agregá el primero con el formulario.
           </p>
