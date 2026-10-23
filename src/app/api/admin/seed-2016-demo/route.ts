@@ -91,7 +91,7 @@ function computeStandings(
     }
   }
 
-  return [...rows.values()].sort((a, b) => {
+  return Array.from(rows.values()).sort((a, b) => {
     if (b.pts !== a.pts) return b.pts - a.pts;
     const da = a.gf - a.ga;
     const db = b.gf - b.ga;
