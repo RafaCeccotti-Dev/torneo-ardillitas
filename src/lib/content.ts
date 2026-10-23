@@ -107,9 +107,9 @@ export async function getMatches(filters?: {
 }): Promise<Match[]> {
   if (!isSupabaseConfigured()) return [];
 
-  // Fixture oculto hasta que el coordinador publique partidos reales.
-  // Evita mostrar datos de prueba cargados en Supabase.
-  const publishFixture = process.env.PUBLISH_FIXTURE === "true";
+  // Fixture visible salvo que se oculte explícitamente (PUBLISH_FIXTURE=false).
+  // Antes estaba oculto por defecto para no mostrar datos de prueba.
+  const publishFixture = process.env.PUBLISH_FIXTURE !== "false";
   if (!publishFixture) return [];
 
   const supabase = createPublicClient();

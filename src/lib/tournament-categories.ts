@@ -21,7 +21,7 @@ export type YearStandingsConfig = {
 export const standingsConfig: Record<TournamentCategorySlug, YearStandingsConfig[]> = {
   masculino: [
     { label: "2015", groups: ["A", "B", "C"] },
-    { label: "2016", groups: ["A", "B", "C"] },
+    { label: "2016", groups: ["A", "B", "C", "D"] },
     { label: "2017", groups: ["A", "B", "C"] },
     { label: "2018", groups: ["A", "B", "C"] },
     { label: "2019/2020", groups: ["A", "B", "C"] },
