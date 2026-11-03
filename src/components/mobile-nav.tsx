@@ -7,11 +7,7 @@ import { Menu } from "lucide-react";
 
 import { navItems } from "@/config/site";
 
-type MobileNavProps = {
-  preinscripcionUrl: string;
-};
-
-export function MobileNav({ preinscripcionUrl }: MobileNavProps) {
+export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -50,15 +46,6 @@ export function MobileNav({ preinscripcionUrl }: MobileNavProps) {
                 {item.label}
               </Link>
             ))}
-            <a
-              href={preinscripcionUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-yellow-400 hover:bg-white/10"
-            >
-              Preinscripción
-            </a>
           </div>
         </>
       ) : null}

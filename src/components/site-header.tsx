@@ -47,15 +47,7 @@ export function SiteHeader({ className }: { className?: string }) {
           ) : null}
 
           <div className="flex shrink-0 items-center gap-2">
-            <a
-              href={siteConfig.preinscripcionFormUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden rounded-full border border-yellow-400/50 px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-yellow-400 transition hover:bg-yellow-400/10 lg:inline-flex"
-            >
-              Preinscripción
-            </a>
-            <MobileNav preinscripcionUrl={siteConfig.preinscripcionFormUrl} />
+            <MobileNav />
           </div>
         </div>
 

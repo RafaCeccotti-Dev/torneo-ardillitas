@@ -20,7 +20,6 @@ export const siteConfig = {
     alias: "ardillitascentral26",
     bank: "Ualá Bank S.A.U.",
   },
-  preinscripcionFormUrl: "https://forms.gle/igkPKpmTw947DFSUA",
   drivePhotosUrl: "",
   /** Completar con número internacional sin + (ej. 5493491XXXXXX) */
   infoContacts: [

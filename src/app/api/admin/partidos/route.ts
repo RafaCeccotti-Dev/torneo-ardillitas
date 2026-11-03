@@ -95,3 +95,22 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true, id: data.id });
 }
+
+export async function DELETE() {
+  const auth = await requireAdmin();
+  if ("error" in auth && auth.error) return auth.error;
+  const { supabase } = auth;
+
+  const { error, count } = await supabase
+    .from("matches")
+    .delete({ count: "exact" })
+    .not("id", "is", null);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  revalidateTournamentPages();
+
+  return NextResponse.json({ ok: true, deleted: count ?? 0 });
+}

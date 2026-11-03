@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { CalendarDays, ExternalLink, MapPin, Trophy } from "lucide-react";
+import { CalendarDays, MapPin, Trophy } from "lucide-react";
 
 import { ContentSection } from "@/components/content-section";
 import { MatchCard } from "@/components/match-card";
 import { PageBackground } from "@/components/page-background";
-import { PreinscripcionBanner } from "@/components/preinscripcion-banner";
 import { siteConfig } from "@/config/site";
 import { getMatches } from "@/lib/content";
 import { formatEdition } from "@/lib/edition";
@@ -33,18 +32,9 @@ export default async function HomePage() {
             solo lugar.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href={siteConfig.preinscripcionFormUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-display inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition hover:bg-yellow-300"
-            >
-              Preinscribirme
-              <ExternalLink className="h-4 w-4" />
-            </a>
             <Link
               href="/partidos"
-              className="font-display rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/10"
+              className="font-display rounded-full bg-yellow-400 px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition hover:bg-yellow-300"
             >
               Ver partidos
             </Link>
@@ -57,8 +47,6 @@ export default async function HomePage() {
           </div>
         </div>
       </PageBackground>
-
-      <PreinscripcionBanner />
 
       <div className="bg-black">
         <ContentSection title="Próximos partidos">

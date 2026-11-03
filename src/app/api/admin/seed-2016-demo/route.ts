@@ -107,6 +107,36 @@ function authorize(request: Request) {
   return header === SEED_TOKEN || query === SEED_TOKEN;
 }
 
+/** Borra todos los partidos de prueba. No toca equipos. */
+export async function GET(request: Request) {
+  if (!authorize(request)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: "Supabase no configurado" }, { status: 503 });
+  }
+  if (!hasServiceRole()) {
+    return NextResponse.json(
+      { error: "Falta SUPABASE_SERVICE_ROLE_KEY en Vercel" },
+      { status: 503 },
+    );
+  }
+
+  const supabase = createServiceClient();
+  const { error, count } = await supabase
+    .from("matches")
+    .delete({ count: "exact" })
+    .not("id", "is", null);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  revalidateTournamentPages();
+
+  return NextResponse.json({ ok: true, deletedMatches: count ?? 0, teamsUntouched: true });
+}
+
 export async function POST(request: Request) {
   if (!authorize(request)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
