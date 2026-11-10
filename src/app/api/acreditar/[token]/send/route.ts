@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isTeamSubmitted } from "@/lib/accreditation-access";
+import { isTeamSubmitted, markTeamSubmitted } from "@/lib/accreditation-access";
 import { buildAccreditationPdf } from "@/lib/accreditation-pdf";
 import { buildRosterEmailText } from "@/lib/roster-email-text";
 import { COORDINATOR_EMAIL, sendPdfEmail } from "@/lib/send-email";
@@ -85,23 +85,7 @@ export async function POST(
     return NextResponse.json({ error: "Categoría no autorizada en este link" }, { status: 403 });
   }
 
-  const { data: existingSubmission, error: submissionsProbe } = await supabase
-    .from("accreditation_submissions")
-    .select("team_id")
-    .eq("team_id", teamId)
-    .maybeSingle();
-
-  if (submissionsProbe?.message?.includes("accreditation_submissions")) {
-    return NextResponse.json(
-      {
-        error:
-          "Falta ejecutar supabase/accreditation-lock.sql en Supabase para cerrar categorías al enviar.",
-      },
-      { status: 503 },
-    );
-  }
-
-  if (existingSubmission || (await isTeamSubmitted(supabase, teamId))) {
+  if (await isTeamSubmitted(supabase, teamId)) {
     return NextResponse.json(
       {
         error:
@@ -174,29 +158,21 @@ export async function POST(
       filename,
     });
 
-    const { error: lockError } = await supabase.from("accreditation_submissions").upsert(
-      {
-        team_id: teamId,
-        portal_id: portal.id,
-        submitted_at: new Date().toISOString(),
-        player_count: players.length,
-        staff_count: staff?.length ?? 0,
-      },
-      { onConflict: "team_id" },
-    );
+    const lock = await markTeamSubmitted(supabase, {
+      teamId,
+      portalId: portal.id,
+      playerCount: players.length,
+      staffCount: staff?.length ?? 0,
+    });
 
-    if (lockError) {
-      // Si falta la tabla, el mail puede haber salido: avisamos igual.
-      if (lockError.message.includes("accreditation_submissions")) {
-        return NextResponse.json(
-          {
-            error:
-              "El PDF se generó, pero falta ejecutar supabase/accreditation-lock.sql en Supabase para cerrar la categoría.",
-          },
-          { status: 500 },
-        );
-      }
-      return NextResponse.json({ error: lockError.message }, { status: 500 });
+    if (!lock.ok) {
+      return NextResponse.json(
+        {
+          error:
+            "El PDF se generó, pero no se pudo cerrar la categoría: " + lock.error,
+        },
+        { status: 500 },
+      );
     }
 
     if (result) {

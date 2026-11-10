@@ -6,6 +6,7 @@ import {
   MAX_STAFF_PER_CATEGORY,
   type StaffRole,
 } from "@/lib/accreditation";
+import { listSubmittedTeamIds } from "@/lib/accreditation-access";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 
 function serviceOrError() {
@@ -99,20 +100,7 @@ async function loadPortalByToken(
     }> | null }) => chunk.data ?? [],
   );
 
-  const submissionsRes = teamIds.length
-    ? await supabase
-        .from("accreditation_submissions")
-        .select("team_id, submitted_at")
-        .in("team_id", teamIds)
-    : { data: [] as Array<{ team_id: string; submitted_at: string }>, error: null };
-
-  // Si todavía no corrieron el SQL del lock, seguimos sin romper el panel.
-  const submittedAtByTeam = new Map<string, string>();
-  if (!submissionsRes.error) {
-    for (const row of submissionsRes.data ?? []) {
-      submittedAtByTeam.set(row.team_id, row.submitted_at);
-    }
-  }
+  const submittedAtByTeam = await listSubmittedTeamIds(supabase, teamIds);
 
   const countByTeam = new Map<string, number>();
   for (const player of players ?? []) {
