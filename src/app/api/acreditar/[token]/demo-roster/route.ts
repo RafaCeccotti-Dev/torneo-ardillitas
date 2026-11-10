@@ -4,6 +4,7 @@ import {
   MAX_PLAYERS_PER_CATEGORY,
   MAX_STAFF_PER_CATEGORY,
 } from "@/lib/accreditation";
+import { assertTeamEditable } from "@/lib/accreditation-access";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 
 const DEMO_PLAYERS = [
@@ -77,21 +78,8 @@ export async function POST(
   const teamId = String(body.teamId ?? "").trim();
   if (!teamId) return NextResponse.json({ error: "Falta teamId" }, { status: 400 });
 
-  const { data: portal } = await supabase
-    .from("accreditation_portals")
-    .select("id, name")
-    .eq("token", params.token)
-    .maybeSingle();
-  if (!portal) return NextResponse.json({ error: "Link inválido" }, { status: 404 });
-
-  const { data: team } = await supabase
-    .from("teams")
-    .select("id, name")
-    .eq("id", teamId)
-    .maybeSingle();
-  if (!team || team.name !== portal.name) {
-    return NextResponse.json({ error: "Equipo no autorizado" }, { status: 403 });
-  }
+  const access = await assertTeamEditable(supabase, params.token, teamId);
+  if ("error" in access && access.error) return access.error;
 
   await supabase.from("accreditation_players").delete().eq("team_id", teamId);
   await supabase.from("accreditation_staff").delete().eq("team_id", teamId);
@@ -129,7 +117,7 @@ export async function POST(
     ok: true,
     players: players.length,
     staff: staffRows.length,
-    club: portal.name,
+    club: access.portal.name,
     teamId,
   });
 }

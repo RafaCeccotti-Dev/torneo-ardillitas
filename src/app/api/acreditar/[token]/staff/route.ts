@@ -5,6 +5,12 @@ import {
   STAFF_ROLES,
   type StaffRole,
 } from "@/lib/accreditation";
+import {
+  assertTeamEditable,
+  assertTeamInPortal,
+  categoryLockedResponse,
+  isTeamSubmitted,
+} from "@/lib/accreditation-access";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 
 function serviceOrError() {
@@ -28,26 +34,6 @@ function serviceOrError() {
   }
 }
 
-async function assertTeamInPortal(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-  token: string,
-  teamId: string,
-) {
-  const { data: portal } = await supabase
-    .from("accreditation_portals")
-    .select("id, name")
-    .eq("token", token)
-    .maybeSingle();
-  if (!portal) return false;
-  const { data: team } = await supabase
-    .from("teams")
-    .select("id, name")
-    .eq("id", teamId)
-    .maybeSingle();
-  return Boolean(team && team.name === portal.name);
-}
-
 export async function POST(
   request: Request,
   { params }: { params: { token: string } },
@@ -64,9 +50,9 @@ export async function POST(
   const dni = String(body.dni ?? "").replace(/\D/g, "");
   const phone = String(body.phone ?? "").trim();
 
-  if (!(await assertTeamInPortal(supabase, params.token, teamId))) {
-    return NextResponse.json({ error: "Equipo no autorizado" }, { status: 403 });
-  }
+  const access = await assertTeamEditable(supabase, params.token, teamId);
+  if ("error" in access && access.error) return access.error;
+
   if (!STAFF_ROLES.some((item) => item.value === role)) {
     return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
   }
@@ -88,6 +74,7 @@ export async function POST(
     );
   }
 
+  // Se puede repetir la misma persona en otra categoría del club.
   const { data, error } = await supabase
     .from("accreditation_staff")
     .insert({
@@ -123,8 +110,13 @@ export async function DELETE(
     .maybeSingle();
 
   if (!row) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
-  if (!(await assertTeamInPortal(supabase, params.token, row.team_id))) {
+
+  const access = await assertTeamInPortal(supabase, params.token, row.team_id);
+  if (!access.ok) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+  if (await isTeamSubmitted(supabase, row.team_id)) {
+    return categoryLockedResponse();
   }
 
   const { error } = await supabase.from("accreditation_staff").delete().eq("id", id);

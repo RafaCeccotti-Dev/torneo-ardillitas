@@ -85,3 +85,17 @@ create policy "Coordinador escribe staff"
   with check (auth.role() = 'authenticated');
 
 -- No hace falta bucket de fotos de DNI (solo se guardan datos de texto).
+
+-- Cierre por categoría al enviar al coordinador (ver también accreditation-lock.sql).
+create table if not exists accreditation_submissions (
+  team_id uuid primary key references teams(id) on delete cascade,
+  portal_id uuid not null references accreditation_portals(id) on delete cascade,
+  submitted_at timestamptz not null default now(),
+  player_count int not null default 0,
+  staff_count int not null default 0
+);
+
+create index if not exists accreditation_submissions_portal_idx
+  on accreditation_submissions(portal_id);
+
+alter table accreditation_submissions enable row level security;

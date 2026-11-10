@@ -35,6 +35,8 @@ type Team = {
   groupName: string;
   logoUrl: string | null;
   playerCount: number;
+  submitted?: boolean;
+  submittedAt?: string | null;
 };
 
 type Player = {
@@ -117,6 +119,7 @@ export function AccreditationPanel({ token }: { token: string }) {
   const maxPlayers = data?.maxPlayers ?? MAX_PLAYERS_PER_CATEGORY;
   const maxStaff = data?.maxStaff ?? MAX_STAFF_PER_CATEGORY;
   const totalPlayers = data?.players.length ?? 0;
+  const categoryLocked = Boolean(team?.submitted);
 
   async function addPlayer(form: FormData) {
     setBusy(true);
@@ -137,7 +140,11 @@ export function AccreditationPanel({ token }: { token: string }) {
   }
 
   async function removePlayer(id: string) {
-    if (!confirm("¿Sacar este jugador de la lista?")) return;
+    if (categoryLocked) {
+      alert("Esta categoría ya fue enviada. No se puede borrar.");
+      return;
+    }
+    if (!confirm("¿Sacar este jugador de la lista? Después podés volver a cargarlo.")) return;
     setBusy(true);
     try {
       const res = await fetch(`/api/acreditar/${token}/players?id=${id}`, { method: "DELETE" });
@@ -179,7 +186,17 @@ export function AccreditationPanel({ token }: { token: string }) {
   }
 
   async function removeStaff(id: string) {
-    if (!confirm("¿Sacar a esta persona del cuerpo técnico?")) return;
+    if (categoryLocked) {
+      alert("Esta categoría ya fue enviada. No se puede borrar.");
+      return;
+    }
+    if (
+      !confirm(
+        "¿Sacar a esta persona del cuerpo técnico? Después podés volver a cargarla.",
+      )
+    ) {
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch(`/api/acreditar/${token}/staff?id=${id}`, { method: "DELETE" });
@@ -194,10 +211,10 @@ export function AccreditationPanel({ token }: { token: string }) {
   }
 
   async function sendInscription() {
-    if (!teamId) return;
+    if (!teamId || categoryLocked) return;
     if (
       !confirm(
-        "¿Enviar el PDF de esta categoría al correo del coordinador (torneoardillitas@gmail.com)?",
+        "¿Enviar el PDF de esta categoría al coordinador?\n\nDespués de enviarlo NO vas a poder editar, borrar ni volver a cargar esta categoría.",
       )
     ) {
       return;
@@ -226,8 +243,9 @@ export function AccreditationPanel({ token }: { token: string }) {
           `Se descargó el PDF en este celular. No pudimos confirmar el envío por mail: mandáselo al coordinador (${json.to}) por WhatsApp o mail.`,
         );
       } else {
-        setSendMsg(`Listo: PDF enviado a ${json.to} (${json.players} jugadores).`);
+        setSendMsg(`Listo: PDF enviado a ${json.to} (${json.players} jugadores). Esta categoría quedó cerrada.`);
       }
+      await load();
     } catch (err) {
       setSendMsg(err instanceof Error ? err.message : "Error al enviar");
     } finally {
@@ -334,12 +352,31 @@ export function AccreditationPanel({ token }: { token: string }) {
                 {item.category === "femenino" ? " · Femenino" : " · Masculino"}
                 {item.groupName ? ` · Grupo ${item.groupName}` : ""} · {item.playerCount}/
                 {maxPlayers}
+                {item.submitted ? " · Enviada" : ""}
               </option>
             ))}
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
         </div>
       </label>
+
+      {categoryLocked ? (
+        <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+          <p className="flex items-center gap-2 font-semibold">
+            <Check className="h-4 w-4" />
+            Acreditación enviada
+          </p>
+          <p className="mt-1 text-xs text-emerald-100/80">
+            Esta categoría ya está cerrada. No se puede agregar ni borrar jugadores o cuerpo
+            técnico. Si hay un error, escribinos por WhatsApp.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-6 text-xs leading-relaxed text-white/45">
+          Podés usar el mismo jugador o el mismo cuerpo técnico en otra categoría. Mientras no
+          envíes esta, podés borrar y volver a cargar.
+        </p>
+      )}
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
@@ -378,29 +415,33 @@ export function AccreditationPanel({ token }: { token: string }) {
                     {player.birthDateDisplay ? ` · ${player.birthDateDisplay}` : ""}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void removePlayer(player.id)}
-                  className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-red-400"
-                  aria-label="Eliminar jugador"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {!categoryLocked ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void removePlayer(player.id)}
+                    className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-red-400"
+                    aria-label="Eliminar jugador"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
         )}
 
-        <button
-          type="button"
-          disabled={busy || players.length >= maxPlayers}
-          onClick={() => setView("add-player")}
-          className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
-        >
-          <Plus className="h-5 w-5" />
-          Agregar jugador
-        </button>
+        {!categoryLocked ? (
+          <button
+            type="button"
+            disabled={busy || players.length >= maxPlayers}
+            onClick={() => setView("add-player")}
+            className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
+          >
+            <Plus className="h-5 w-5" />
+            Agregar jugador
+          </button>
+        ) : null}
       </section>
 
       <section className="mt-10">
@@ -445,43 +486,55 @@ export function AccreditationPanel({ token }: { token: string }) {
                     </p>
                   )}
                 </div>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void removeStaff(member.id)}
-                  className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-red-400"
-                  aria-label="Quitar"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {!categoryLocked ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void removeStaff(member.id)}
+                    className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-red-400"
+                    aria-label="Quitar"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
         )}
-        <button
-          type="button"
-          disabled={busy || staff.length >= maxStaff}
-          onClick={() => setView("staff")}
-          className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
-        >
-          <Plus className="h-5 w-5" />
-          {staff.length === 0 ? "Agregar delegado / cuerpo técnico" : "Agregar otro"}
-        </button>
+        {!categoryLocked ? (
+          <button
+            type="button"
+            disabled={busy || staff.length >= maxStaff}
+            onClick={() => setView("staff")}
+            className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
+          >
+            <Plus className="h-5 w-5" />
+            {staff.length === 0 ? "Agregar delegado / cuerpo técnico" : "Agregar otro"}
+          </button>
+        ) : null}
       </section>
 
       <section className="mt-10">
-        <button
-          type="button"
-          disabled={busy || players.length === 0}
-          onClick={() => void sendInscription()}
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-yellow-400 bg-black text-base font-bold text-yellow-400 transition hover:bg-yellow-400 hover:text-black disabled:opacity-40"
-        >
-          <Send className="h-5 w-5" />
-          Enviar inscripción (PDF)
-        </button>
-        <p className="mt-2 text-center text-xs text-white/40">
-          Manda el plantel de esta categoría a {siteConfig.coordinatorEmail}
-        </p>
+        {!categoryLocked ? (
+          <>
+            <button
+              type="button"
+              disabled={busy || players.length === 0}
+              onClick={() => void sendInscription()}
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-yellow-400 bg-black text-base font-bold text-yellow-400 transition hover:bg-yellow-400 hover:text-black disabled:opacity-40"
+            >
+              <Send className="h-5 w-5" />
+              Enviar inscripción (PDF)
+            </button>
+            <p className="mt-2 text-center text-xs text-white/40">
+              Al enviar, esta categoría se cierra. Después no se puede editar.
+            </p>
+          </>
+        ) : (
+          <p className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-center text-sm text-white/70">
+            Plantel enviado a {siteConfig.coordinatorEmail}
+          </p>
+        )}
         {sendMsg ? (
           <p className="mt-3 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-sm text-yellow-100">
             {sendMsg}

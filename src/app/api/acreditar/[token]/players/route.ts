@@ -5,6 +5,12 @@ import {
   normalizeDni,
   parseBirthDate,
 } from "@/lib/accreditation";
+import {
+  assertTeamEditable,
+  assertTeamInPortal,
+  categoryLockedResponse,
+  isTeamSubmitted,
+} from "@/lib/accreditation-access";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 
 function serviceOrError() {
@@ -28,26 +34,6 @@ function serviceOrError() {
   }
 }
 
-async function assertTeamInPortal(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-  token: string,
-  teamId: string,
-) {
-  const { data: portal } = await supabase
-    .from("accreditation_portals")
-    .select("id, name")
-    .eq("token", token)
-    .maybeSingle();
-  if (!portal) return false;
-  const { data: team } = await supabase
-    .from("teams")
-    .select("id, name")
-    .eq("id", teamId)
-    .maybeSingle();
-  return Boolean(team && team.name === portal.name);
-}
-
 export async function POST(
   request: Request,
   { params }: { params: { token: string } },
@@ -65,9 +51,9 @@ export async function POST(
   const birthDate = parseBirthDate(birthRaw);
   const jerseyNumber = Number(formData.get("jerseyNumber"));
 
-  if (!(await assertTeamInPortal(supabase, params.token, teamId))) {
-    return NextResponse.json({ error: "Equipo no autorizado en este link" }, { status: 403 });
-  }
+  const access = await assertTeamEditable(supabase, params.token, teamId);
+  if ("error" in access && access.error) return access.error;
+
   if (firstName.length < 2 || lastName.length < 2) {
     return NextResponse.json({ error: "Nombre y apellido obligatorios" }, { status: 400 });
   }
@@ -94,6 +80,7 @@ export async function POST(
   }
 
   // La foto del DNI solo se usa en el celular para OCR; no se guarda.
+  // El mismo DNI puede repetirse en OTRA categoría del club.
   const { data, error } = await supabase
     .from("accreditation_players")
     .insert({
@@ -112,7 +99,7 @@ export async function POST(
     const msg = error.message.includes("jersey_number")
       ? "Ese número de camiseta ya está usado en esta categoría"
       : error.message.includes("dni")
-        ? "Ese DNI ya está cargado en esta categoría"
+        ? "Ese DNI ya está cargado en esta categoría (en otra categoría sí se puede repetir)"
         : error.message;
     return NextResponse.json({ error: msg }, { status: 400 });
   }
@@ -138,8 +125,13 @@ export async function DELETE(
     .maybeSingle();
 
   if (!player) return NextResponse.json({ error: "Jugador no encontrado" }, { status: 404 });
-  if (!(await assertTeamInPortal(supabase, params.token, player.team_id))) {
+
+  const access = await assertTeamInPortal(supabase, params.token, player.team_id);
+  if (!access.ok) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+  if (await isTeamSubmitted(supabase, player.team_id)) {
+    return categoryLockedResponse();
   }
 
   const { error } = await supabase.from("accreditation_players").delete().eq("id", playerId);

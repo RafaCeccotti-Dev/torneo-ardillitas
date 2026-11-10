@@ -99,6 +99,21 @@ async function loadPortalByToken(
     }> | null }) => chunk.data ?? [],
   );
 
+  const submissionsRes = teamIds.length
+    ? await supabase
+        .from("accreditation_submissions")
+        .select("team_id, submitted_at")
+        .in("team_id", teamIds)
+    : { data: [] as Array<{ team_id: string; submitted_at: string }>, error: null };
+
+  // Si todavía no corrieron el SQL del lock, seguimos sin romper el panel.
+  const submittedAtByTeam = new Map<string, string>();
+  if (!submissionsRes.error) {
+    for (const row of submissionsRes.data ?? []) {
+      submittedAtByTeam.set(row.team_id, row.submitted_at);
+    }
+  }
+
   const countByTeam = new Map<string, number>();
   for (const player of players ?? []) {
     countByTeam.set(player.team_id, (countByTeam.get(player.team_id) ?? 0) + 1);
@@ -152,6 +167,8 @@ async function loadPortalByToken(
         groupName: team.group_name,
         logoUrl: logoUrl(supabase, team.logo_path),
         playerCount: countByTeam.get(team.id) ?? 0,
+        submitted: submittedAtByTeam.has(team.id),
+        submittedAt: submittedAtByTeam.get(team.id) ?? null,
       }),
     ),
     players: mappedPlayers,
