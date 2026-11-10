@@ -406,21 +406,21 @@ export function AccreditationPanel({ token }: { token: string }) {
       <section className="mt-10">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-white">
-            Profes / delegados
+            Delegados / cuerpo técnico
           </h2>
           <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/70">
             {staff.length}/{maxStaff}
           </span>
         </div>
         <p className="mb-3 text-xs text-white/45">
-          Opcional: hasta {maxStaff} personas (profe, ayudante o delegado). No hace falta cargar
+          Opcional: hasta {maxStaff} personas (delegado o cuerpo técnico). No hace falta cargar
           los dos.
         </p>
         {staff.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-8 text-center">
             <UserCog className="mx-auto h-8 w-8 text-white/35" />
             <p className="mt-3 text-sm text-white/55">
-              Todavía no cargaste profes ni delegados (es opcional).
+              Todavía no cargaste delegados ni cuerpo técnico (es opcional).
             </p>
           </div>
         ) : (
@@ -465,7 +465,7 @@ export function AccreditationPanel({ token }: { token: string }) {
           className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
         >
           <Plus className="h-5 w-5" />
-          {staff.length === 0 ? "Agregar profe / delegado" : "Agregar otro"}
+          {staff.length === 0 ? "Agregar delegado / cuerpo técnico" : "Agregar otro"}
         </button>
       </section>
 
@@ -800,7 +800,7 @@ function StaffForm({
           <X className="h-6 w-6" />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-white">Profe / delegado</h1>
+          <h1 className="text-xl font-bold text-white">Delegado / cuerpo técnico</h1>
           <p className="text-xs text-white/45">Opcional · máximo {MAX_STAFF_PER_CATEGORY}</p>
         </div>
       </div>

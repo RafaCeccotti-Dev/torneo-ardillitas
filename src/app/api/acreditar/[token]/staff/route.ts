@@ -82,7 +82,7 @@ export async function POST(
   if ((count ?? 0) >= MAX_STAFF_PER_CATEGORY) {
     return NextResponse.json(
       {
-        error: `Ya cargaste ${MAX_STAFF_PER_CATEGORY} profes/delegados (máximo por categoría)`,
+        error: `Ya cargaste ${MAX_STAFF_PER_CATEGORY} delegados/cuerpo técnico (máximo por categoría)`,
       },
       { status: 400 },
     );

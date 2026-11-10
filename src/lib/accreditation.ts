@@ -1,6 +1,6 @@
 /** Tope por categoría/equipo: no es obligatorio completar el máximo. */
-export const MAX_PLAYERS_PER_CATEGORY = 15;
-/** Profes / delegados por categoría: 0, 1 o 2 (ninguno obligatorio). */
+export const MAX_PLAYERS_PER_CATEGORY = 14;
+/** Delegados / cuerpo técnico por categoría: 0, 1 o 2 (ninguno obligatorio). */
 export const MAX_STAFF_PER_CATEGORY = 2;
 /** Fotos destacadas en la web; el resto va por Drive. */
 export const MAX_GALLERY_PHOTOS = 5;

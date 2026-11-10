@@ -64,7 +64,7 @@ function serviceOrError() {
   }
 }
 
-/** Carga un plantel de ejemplo (hasta 15 jugadores + 2 staff) para probar el PDF. */
+/** Carga un plantel de ejemplo (hasta 14 jugadores + 2 staff) para probar el PDF. */
 export async function POST(
   request: Request,
   { params }: { params: { token: string } },

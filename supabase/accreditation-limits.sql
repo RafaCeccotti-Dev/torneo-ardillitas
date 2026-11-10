@@ -1,4 +1,4 @@
--- Límites de acreditación: hasta 15 jugadores y hasta 2 profes/delegados por equipo.
+-- Límites de acreditación: hasta 14 jugadores y hasta 2 delegados/cuerpo técnico por equipo.
 -- Ejecutar en Supabase → SQL Editor.
 -- Se quita unique(team_id, role) para permitir 2 roles distintos (o el mismo) sin pisarse.
 
