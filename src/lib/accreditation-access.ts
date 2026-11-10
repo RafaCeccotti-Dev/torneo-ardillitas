@@ -1,17 +1,7 @@
 import { NextResponse } from "next/server";
 
-type ServiceClient = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  from: (table: string) => any;
-  storage: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    from: (bucket: string) => any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createBucket?: (id: string, options?: Record<string, unknown>) => Promise<any>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getBucket?: (id: string) => Promise<any>;
-  };
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ServiceClient = any;
 
 const LOCK_BUCKET = "accreditation-locks";
 
