@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { STAFF_ROLES, type StaffRole } from "@/lib/accreditation";
+import {
+  MAX_STAFF_PER_CATEGORY,
+  STAFF_ROLES,
+  type StaffRole,
+} from "@/lib/accreditation";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 
 function serviceOrError() {
@@ -70,19 +74,30 @@ export async function POST(
     return NextResponse.json({ error: "Nombre y apellido obligatorios" }, { status: 400 });
   }
 
+  const { count } = await supabase
+    .from("accreditation_staff")
+    .select("*", { count: "exact", head: true })
+    .eq("team_id", teamId);
+
+  if ((count ?? 0) >= MAX_STAFF_PER_CATEGORY) {
+    return NextResponse.json(
+      {
+        error: `Ya cargaste ${MAX_STAFF_PER_CATEGORY} profes/delegados (máximo por categoría)`,
+      },
+      { status: 400 },
+    );
+  }
+
   const { data, error } = await supabase
     .from("accreditation_staff")
-    .upsert(
-      {
-        team_id: teamId,
-        role,
-        first_name: firstName,
-        last_name: lastName,
-        dni,
-        phone,
-      },
-      { onConflict: "team_id,role" },
-    )
+    .insert({
+      team_id: teamId,
+      role,
+      first_name: firstName,
+      last_name: lastName,
+      dni,
+      phone,
+    })
     .select("id")
     .single();
 

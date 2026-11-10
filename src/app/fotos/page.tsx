@@ -18,7 +18,7 @@ export default async function FotosPage() {
     <PageBackground imageKey="hero" className="min-h-[40vh]">
       <ContentSection
         title="Fotos del torneo"
-        description="Galería de imágenes del torneo y momentos destacados. Tocá una foto para verla en grande."
+        description="Algunas fotos destacadas del torneo. Tocá una para verla en grande; el álbum completo está en Drive."
       >
         {hasPhotos ? (
           <GalleryLightbox photos={photos} />

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { MAX_PLAYERS_PER_CATEGORY } from "@/lib/accreditation";
+import {
+  MAX_PLAYERS_PER_CATEGORY,
+  MAX_STAFF_PER_CATEGORY,
+} from "@/lib/accreditation";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 
 const DEMO_PLAYERS = [
@@ -61,7 +64,7 @@ function serviceOrError() {
   }
 }
 
-/** Carga un plantel de ejemplo (16 jugadores + 3 staff) para probar el PDF. */
+/** Carga un plantel de ejemplo (hasta 15 jugadores + 2 staff) para probar el PDF. */
 export async function POST(
   request: Request,
   { params }: { params: { token: string } },
@@ -108,7 +111,7 @@ export async function POST(
     return NextResponse.json({ error: playersError.message }, { status: 500 });
   }
 
-  const staffRows = DEMO_STAFF.map((member) => ({
+  const staffRows = DEMO_STAFF.slice(0, MAX_STAFF_PER_CATEGORY).map((member) => ({
     team_id: teamId,
     role: member.role,
     first_name: member.firstName,

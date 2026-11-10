@@ -1,7 +1,12 @@
-export const MAX_PLAYERS_PER_CATEGORY = 16;
+/** Tope por categoría/equipo: no es obligatorio completar el máximo. */
+export const MAX_PLAYERS_PER_CATEGORY = 15;
+/** Profes / delegados por categoría: 0, 1 o 2 (ninguno obligatorio). */
+export const MAX_STAFF_PER_CATEGORY = 2;
+/** Fotos destacadas en la web; el resto va por Drive. */
+export const MAX_GALLERY_PHOTOS = 5;
 
 export const STAFF_ROLES = [
-  { value: "dt", label: "Director técnico" },
+  { value: "dt", label: "Director técnico / profe" },
   { value: "ayudante", label: "Ayudante de campo" },
   { value: "delegado", label: "Delegado" },
   { value: "medico", label: "Médico / kinesiólogo" },

@@ -6,7 +6,6 @@ import {
   Check,
   ChevronDown,
   Copy,
-  Pencil,
   Plus,
   Send,
   Trash2,
@@ -19,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import {
   MAX_PLAYERS_PER_CATEGORY,
+  MAX_STAFF_PER_CATEGORY,
   STAFF_ROLES,
   type StaffRole,
 } from "@/lib/accreditation";
@@ -65,6 +65,7 @@ type PanelData = {
   players: Player[];
   staff: Staff[];
   maxPlayers: number;
+  maxStaff: number;
 };
 
 export function AccreditationPanel({ token }: { token: string }) {
@@ -114,6 +115,7 @@ export function AccreditationPanel({ token }: { token: string }) {
 
   const usedJerseys = useMemo(() => new Set(players.map((p) => p.jerseyNumber)), [players]);
   const maxPlayers = data?.maxPlayers ?? MAX_PLAYERS_PER_CATEGORY;
+  const maxStaff = data?.maxStaff ?? MAX_STAFF_PER_CATEGORY;
   const totalPlayers = data?.players.length ?? 0;
 
   async function addPlayer(form: FormData) {
@@ -171,6 +173,21 @@ export function AccreditationPanel({ token }: { token: string }) {
       setView("home");
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeStaff(id: string) {
+    if (!confirm("¿Sacar a esta persona del cuerpo técnico?")) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/acreditar/${token}/staff?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "No se pudo borrar");
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error");
     } finally {
       setBusy(false);
     }
@@ -331,6 +348,9 @@ export function AccreditationPanel({ token }: { token: string }) {
             {players.length}/{maxPlayers}
           </span>
         </div>
+        <p className="mb-3 text-xs text-white/45">
+          Hasta {maxPlayers} jugadores por categoría. No hace falta completar el máximo.
+        </p>
 
         {players.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-8 text-center">
@@ -384,14 +404,23 @@ export function AccreditationPanel({ token }: { token: string }) {
       </section>
 
       <section className="mt-10">
-        <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.14em] text-white">
-          Cuerpo técnico
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-white">
+            Profes / delegados
+          </h2>
+          <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/70">
+            {staff.length}/{maxStaff}
+          </span>
+        </div>
+        <p className="mb-3 text-xs text-white/45">
+          Opcional: hasta {maxStaff} personas (profe, ayudante o delegado). No hace falta cargar
+          los dos.
+        </p>
         {staff.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-8 text-center">
             <UserCog className="mx-auto h-8 w-8 text-white/35" />
             <p className="mt-3 text-sm text-white/55">
-              Todavía no cargaste el profe de esta categoría.
+              Todavía no cargaste profes ni delegados (es opcional).
             </p>
           </div>
         ) : (
@@ -399,31 +428,44 @@ export function AccreditationPanel({ token }: { token: string }) {
             {staff.map((member) => (
               <li
                 key={member.id}
-                className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3"
+                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3"
               >
-                <p className="text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                  {STAFF_ROLES.find((r) => r.value === member.role)?.label ?? member.role}
-                </p>
-                <p className="mt-1 font-semibold text-white">
-                  {member.firstName} {member.lastName}
-                </p>
-                {(member.dni || member.phone) && (
-                  <p className="mt-0.5 text-xs text-white/45">
-                    {[member.dni && `DNI ${member.dni}`, member.phone].filter(Boolean).join(" · ")}
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-yellow-400">
+                    {STAFF_ROLES.find((r) => r.value === member.role)?.label ?? member.role}
                   </p>
-                )}
+                  <p className="mt-1 font-semibold text-white">
+                    {member.firstName} {member.lastName}
+                  </p>
+                  {(member.dni || member.phone) && (
+                    <p className="mt-0.5 text-xs text-white/45">
+                      {[member.dni && `DNI ${member.dni}`, member.phone]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void removeStaff(member.id)}
+                  className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-red-400"
+                  aria-label="Quitar"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </li>
             ))}
           </ul>
         )}
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || staff.length >= maxStaff}
           onClick={() => setView("staff")}
           className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
         >
-          <Pencil className="h-5 w-5" />
-          Cargar cuerpo técnico
+          <Plus className="h-5 w-5" />
+          {staff.length === 0 ? "Agregar profe / delegado" : "Agregar otro"}
         </button>
       </section>
 
@@ -737,7 +779,6 @@ function AddPlayerForm({
 function StaffForm({
   busy,
   error,
-  existing,
   onClose,
   onSubmit,
 }: {
@@ -747,8 +788,6 @@ function StaffForm({
   onClose: () => void;
   onSubmit: (form: FormData) => void;
 }) {
-  const dt = existing.find((s) => s.role === "dt");
-
   return (
     <div className="mx-auto min-h-screen max-w-lg px-4 pb-10 pt-4">
       <div className="mb-6 flex items-center gap-3">
@@ -760,7 +799,10 @@ function StaffForm({
         >
           <X className="h-6 w-6" />
         </button>
-        <h1 className="text-xl font-bold text-white">Cuerpo técnico</h1>
+        <div>
+          <h1 className="text-xl font-bold text-white">Profe / delegado</h1>
+          <p className="text-xs text-white/45">Opcional · máximo {MAX_STAFF_PER_CATEGORY}</p>
+        </div>
       </div>
 
       <form
@@ -773,7 +815,7 @@ function StaffForm({
         <Field label="Rol">
           <select
             name="role"
-            defaultValue={dt?.role ?? "dt"}
+            defaultValue="dt"
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
             required
           >
@@ -788,7 +830,6 @@ function StaffForm({
           <input
             name="firstName"
             required
-            defaultValue={dt?.firstName ?? ""}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
           />
         </Field>
@@ -796,7 +837,6 @@ function StaffForm({
           <input
             name="lastName"
             required
-            defaultValue={dt?.lastName ?? ""}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
           />
         </Field>
@@ -805,14 +845,12 @@ function StaffForm({
             name="dni"
             inputMode="numeric"
             placeholder="Sin puntos"
-            defaultValue={dt?.dni ?? ""}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
           />
         </Field>
         <Field label="Teléfono (opcional)">
           <input
             name="phone"
-            defaultValue={dt?.phone ?? ""}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
           />
         </Field>

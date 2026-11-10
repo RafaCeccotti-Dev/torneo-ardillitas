@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   formatBirthDateDisplay,
   MAX_PLAYERS_PER_CATEGORY,
+  MAX_STAFF_PER_CATEGORY,
   type StaffRole,
 } from "@/lib/accreditation";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
@@ -174,6 +175,7 @@ async function loadPortalByToken(
       }),
     ),
     maxPlayers: MAX_PLAYERS_PER_CATEGORY,
+    maxStaff: MAX_STAFF_PER_CATEGORY,
   };
 }
 

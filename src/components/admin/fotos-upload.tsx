@@ -4,6 +4,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { MAX_GALLERY_PHOTOS } from "@/lib/accreditation";
+import { siteConfig } from "@/config/site";
+
 type AdminPhoto = {
   id: string;
   src: string;
@@ -14,6 +17,7 @@ export function FotosUpload({ photos }: { photos: AdminPhoto[] }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const atLimit = photos.length >= MAX_GALLERY_PHOTOS;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,26 +57,48 @@ export function FotosUpload({ photos }: { photos: AdminPhoto[] }) {
 
   return (
     <div className="space-y-8">
+      <p className="max-w-xl text-sm text-white/65">
+        En la web van como máximo <strong className="text-yellow-300">{MAX_GALLERY_PHOTOS} fotos</strong>{" "}
+        destacadas ({photos.length}/{MAX_GALLERY_PHOTOS}). El resto conviene subirlo a Drive y
+        pegar el link en <code className="text-yellow-300">siteConfig.drivePhotosUrl</code>.
+        {siteConfig.drivePhotosUrl ? (
+          <>
+            {" "}
+            Link actual:{" "}
+            <a
+              href={siteConfig.drivePhotosUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-yellow-300 underline"
+            >
+              abrir Drive
+            </a>
+            .
+          </>
+        ) : null}
+      </p>
       <form onSubmit={onSubmit} className="max-w-xl space-y-4">
         <input
           type="file"
           name="file"
           accept="image/*"
           required
-          className="block w-full text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-yellow-400 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black"
+          disabled={atLimit || loading}
+          className="block w-full text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-yellow-400 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black disabled:opacity-50"
         />
         <input
           type="text"
           name="caption"
           placeholder="Descripción (opcional)"
-          className="w-full rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-white outline-none focus:border-yellow-400"
+          disabled={atLimit || loading}
+          className="w-full rounded-xl border border-yellow-400/20 bg-black px-4 py-3 text-white outline-none focus:border-yellow-400 disabled:opacity-50"
         />
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || atLimit}
           className="font-display rounded-full bg-yellow-400 px-6 py-3 text-sm font-bold uppercase tracking-wide text-black hover:bg-yellow-300 disabled:opacity-60"
         >
-          {loading ? "Subiendo..." : "Publicar foto"}
+          {loading ? "Subiendo..." : atLimit ? "Límite alcanzado" : "Publicar foto"}
         </button>
         {message ? <p className="text-sm text-yellow-300">{message}</p> : null}
       </form>

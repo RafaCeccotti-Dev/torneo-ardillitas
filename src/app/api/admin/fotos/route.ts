@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
+import { MAX_GALLERY_PHOTOS } from "@/lib/accreditation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
 async function requireAuth() {
@@ -42,6 +43,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Solo se permiten imágenes" }, { status: 400 });
   }
 
+  const { count } = await supabase
+    .from("gallery_photos")
+    .select("*", { count: "exact", head: true });
+
+  if ((count ?? 0) >= MAX_GALLERY_PHOTOS) {
+    return NextResponse.json(
+      {
+        error: `La galería web admite hasta ${MAX_GALLERY_PHOTOS} fotos. El resto va por el link de Drive.`,
+      },
+      { status: 400 },
+    );
+  }
+
   const extension =
     file.name.split(".").pop()?.toLowerCase()?.replace(/[^a-z0-9]/g, "") || "jpg";
   const storagePath = `${crypto.randomUUID()}.${extension}`;
@@ -57,10 +71,6 @@ export async function POST(request: Request) {
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
-
-  const { count } = await supabase
-    .from("gallery_photos")
-    .select("*", { count: "exact", head: true });
 
   const { data, error: dbError } = await supabase
     .from("gallery_photos")
