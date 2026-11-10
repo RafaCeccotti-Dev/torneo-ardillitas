@@ -39,7 +39,7 @@ create table if not exists accreditation_staff (
   dni text not null default '',
   phone text not null default '',
   created_at timestamptz not null default now()
-  -- Hasta 2 profes/delegados por equipo (sin unique por rol).
+  -- Hasta 2 delegados/cuerpo técnico por equipo (sin unique por rol).
 );
 
 create index if not exists accreditation_players_team_idx on accreditation_players(team_id);
