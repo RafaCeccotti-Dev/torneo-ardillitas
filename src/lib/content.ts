@@ -124,12 +124,11 @@ export async function getMatches(filters?: {
   if (filters?.yearLabel) query = query.eq("year_label", filters.yearLabel);
 
   const { data: matchRows, error } = await query;
-  if (error || !matchRows?.length) return [];
+  const rows = (!error && matchRows?.length ? matchRows : []) as MatchRow[];
+  if (!rows.length) return [];
 
   const teamIds = Array.from(
-    new Set(
-      (matchRows as MatchRow[]).flatMap((row) => [row.home_team_id, row.away_team_id]),
-    ),
+    new Set(rows.flatMap((row) => [row.home_team_id, row.away_team_id])),
   );
 
   const { data: teamRows, error: teamsError } = await supabase
@@ -139,9 +138,11 @@ export async function getMatches(filters?: {
 
   if (teamsError || !teamRows?.length) return [];
 
-  const teamMap = new Map((teamRows as TeamRow[]).map((row) => [row.id, mapTeam(row)]));
+  const teamMap = new Map(
+    (teamRows as TeamRow[]).map((row) => [row.id, mapTeam(row)] as const),
+  );
 
-  return (matchRows as MatchRow[])
+  return rows
     .map((row) => {
       const home = teamMap.get(row.home_team_id);
       const away = teamMap.get(row.away_team_id);
@@ -160,7 +161,12 @@ export async function getStandingsForCategory(
 
   for (const yearCategory of standingsConfig[category]) {
     const yearLabel = yearCategory.label;
-    const yearTeams = teams.filter((team) => team.yearLabel === yearLabel && team.group);
+    const yearTeams = teams.filter(
+      (team) =>
+        team.yearLabel === yearLabel &&
+        team.group &&
+        team.group.toUpperCase() !== "PEND",
+    );
     if (yearTeams.length === 0) continue;
 
     const yearMatches = matches.filter(
