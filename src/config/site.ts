@@ -20,7 +20,13 @@ export const siteConfig = {
     alias: "ardillitascentral26",
     bank: "Ualá Bank S.A.U.",
   },
-  drivePhotosUrl: "",
+  pressWhatsapp: {
+    number: "5493491434968",
+    name: "Guillermina",
+    label: "Equipo de prensa",
+    message:
+      "Hola Guillermina, te escribo por fotos exclusivas del Torneo Ardillitas XVII.",
+  },
   /** Completar con número internacional sin + (ej. 5493491XXXXXX) */
   infoContacts: [
     {

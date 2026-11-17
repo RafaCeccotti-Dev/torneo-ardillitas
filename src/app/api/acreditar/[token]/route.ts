@@ -157,6 +157,7 @@ async function loadPortalByToken(
         playerCount: countByTeam.get(team.id) ?? 0,
         submitted: submittedAtByTeam.has(team.id),
         submittedAt: submittedAtByTeam.get(team.id) ?? null,
+        sentAt: submittedAtByTeam.get(team.id) ?? null,
       }),
     ),
     players: mappedPlayers,

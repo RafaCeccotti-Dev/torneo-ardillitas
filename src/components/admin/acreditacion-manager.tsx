@@ -14,7 +14,14 @@ type PortalRow = {
   token: string;
   name: string;
   url: string;
-  teams: { id: string; name: string; yearLabel: string; category: string; groupName: string }[];
+  teams: {
+    id: string;
+    name: string;
+    yearLabel: string;
+    category: string;
+    groupName: string;
+    sentAt?: string | null;
+  }[];
 };
 
 export function AcreditacionManager() {
@@ -127,9 +134,8 @@ export function AcreditacionManager() {
           Nuevo link para un DT
         </h2>
         <p className="mt-2 text-sm text-white/60">
-          Solo elegís el <strong className="text-white">club</strong>. El DT, con su link, va a ver
-          automáticamente todas las categorías en las que ese club esté inscripto y carga jugadores
-          ahí adentro.
+          Creá <strong className="text-white">un link por club</strong>, cuando te lo pidan. El DT
+          ve todas las categorías de ese club y carga jugadores ahí adentro.
         </p>
 
         <div className="mt-5 space-y-4">
@@ -160,12 +166,6 @@ export function AcreditacionManager() {
                 El DT va a poder cargar en: {selectedClub.categories.join(" · ")}
               </p>
             </div>
-          ) : null}
-
-          {clubsWithoutLink.length === 0 && !loading ? (
-            <p className="text-sm text-white/50">
-              Todos los clubs con equipos ya tienen link, o todavía no hay equipos cargados.
-            </p>
           ) : null}
 
           <button
@@ -212,7 +212,7 @@ export function AcreditacionManager() {
                         ? portal.teams
                             .map(
                               (t) =>
-                                `${t.yearLabel}${t.category === "femenino" ? " Fem" : ""}${t.groupName ? ` (G${t.groupName})` : ""}`,
+                                `${t.yearLabel}${t.category === "femenino" ? " Fem" : ""}${t.groupName ? ` (G${t.groupName})` : ""}${t.sentAt ? " ✓" : ""}`,
                             )
                             .join(" · ")
                         : "Sin categorías inscriptas todavía"}

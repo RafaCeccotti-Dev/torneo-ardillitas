@@ -1,8 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
 import { formatBirthDateDisplay, type StaffRole } from "@/lib/accreditation";
-import { BUENA_FE_BACKGROUND_JPG_BASE64 } from "@/lib/buena-fe-background";
-import { siteConfig } from "@/config/site";
+import { LISTA_BUENA_FE_TEMPLATE_PDF_BASE64 } from "@/lib/lista-buena-fe-template";
 
 export type RosterPdfPlayer = {
   firstName: string;
@@ -27,29 +26,42 @@ export type RosterPdfInput = {
   staff: RosterPdfStaff[];
 };
 
-const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
-const MARGIN_X = 45.4;
-const MIN_ROWS = 14;
 
 const TABLE_COLUMNS = [45.4, 78.5, 259.8, 367, 474, 581];
 const TABLE_TOP = 201.6;
 const HEADER_HEIGHT = 27.5;
-const ROW_HEIGHT = 27.2;
+const ROW_HEIGHT = 23.7;
+const ROW_TEXT_OFFSET = 13;
+
+const FIELD_Y = {
+  equipo: 86,
+  dt1: 106,
+  dt2: 127,
+  categoria: 145,
+};
+
+const FIELD_X = {
+  equipo: 128,
+  dt: 158,
+  categoria: 372,
+};
+
+const YEAR_CHIPS: Record<string, { x: number; width: number }> = {
+  "2015": { x: 42, width: 92 },
+  "2016": { x: 136, width: 88 },
+  "2017": { x: 238, width: 100 },
+  "2018": { x: 342, width: 98 },
+  "2019": { x: 444, width: 92 },
+};
 
 const DELEGATE_ROLE_ORDER: StaffRole[] = ["dt", "delegado", "ayudante", "otro", "medico"];
 
 const black = rgb(0, 0, 0);
-const yellow = rgb(1, 1, 0);
-const gray = rgb(0.4, 0.4, 0.4);
+const yellow = rgb(1, 0.85, 0);
 
-/** Coordenada Y medida desde arriba de la hoja (como en el modelo) → coordenada pdf-lib. */
 function fromTop(y: number) {
   return PAGE_HEIGHT - y;
-}
-
-function tournamentYear() {
-  return siteConfig.tournamentDates.match(/\d{4}/)?.[0] ?? String(new Date().getFullYear());
 }
 
 function toWinAnsi(font: PDFFont, text: string) {
@@ -73,52 +85,22 @@ function fitText(font: PDFFont, text: string, size: number, maxWidth: number) {
   return `${value.trimEnd()}...`;
 }
 
-function drawLabel(
+function drawFilled(
   page: PDFPage,
-  fontBold: PDFFont,
-  label: string,
+  font: PDFFont,
+  value: string,
   x: number,
   baselineTop: number,
+  maxWidth: number,
 ) {
-  const size = 12;
-  page.drawText(label, { x, y: fromTop(baselineTop), size, font: fontBold, color: black });
-  const width = fontBold.widthOfTextAtSize(label, size);
-  page.drawLine({
-    start: { x, y: fromTop(baselineTop + 2) },
-    end: { x: x + width, y: fromTop(baselineTop + 2) },
-    thickness: 0.7,
-    color: black,
-  });
-  return x + width;
-}
-
-function drawField(
-  page: PDFPage,
-  fonts: { regular: PDFFont; bold: PDFFont },
-  label: string,
-  value: string,
-  baselineTop: number,
-  maxX = PAGE_WIDTH - MARGIN_X,
-) {
-  const endOfLabel = drawLabel(page, fonts.bold, label, MARGIN_X, baselineTop);
   if (!value) return;
-  const x = endOfLabel + 8;
-  page.drawText(fitText(fonts.regular, value, 11, maxX - x), {
+  page.drawText(fitText(font, value, 11, maxWidth), {
     x,
     y: fromTop(baselineTop),
     size: 11,
-    font: fonts.regular,
+    font,
     color: black,
   });
-}
-
-function drawTitleBox(page: PDFPage, fontBold: PDFFont, text: string, top: number) {
-  const size = 16;
-  const height = 19.4;
-  const width = fontBold.widthOfTextAtSize(text, size) + 8;
-  const x = (PAGE_WIDTH - width) / 2;
-  page.drawRectangle({ x, y: fromTop(top + height), width, height, color: black });
-  page.drawText(text, { x: x + 4, y: fromTop(top + 15), size, font: fontBold, color: yellow });
 }
 
 function describeStaff(member: RosterPdfStaff) {
@@ -139,59 +121,48 @@ function pickDelegates(staff: RosterPdfStaff[]) {
     .slice(0, 2);
 }
 
+function markCategoryYear(page: PDFPage, categoryLabel: string) {
+  const year = categoryLabel.match(/\b(201[5-9])\b/)?.[1];
+  if (!year) return;
+  const chip = YEAR_CHIPS[year];
+  if (!chip) return;
+  page.drawRectangle({
+    x: chip.x,
+    y: fromTop(176),
+    width: chip.width,
+    height: 18,
+    borderColor: black,
+    borderWidth: 1.2,
+    color: yellow,
+    opacity: 0.28,
+    borderOpacity: 1,
+  });
+}
+
+function loadTemplateBytes() {
+  return Buffer.from(LISTA_BUENA_FE_TEMPLATE_PDF_BASE64, "base64");
+}
+
 export async function buildAccreditationPdf(input: RosterPdfInput): Promise<Uint8Array> {
+  const template = await PDFDocument.load(loadTemplateBytes());
   const doc = await PDFDocument.create();
+  const [page] = await doc.copyPages(template, [0]);
+  doc.addPage(page);
+
   const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const background = await doc.embedJpg(Buffer.from(BUENA_FE_BACKGROUND_JPG_BASE64, "base64"));
-  const fonts = { regular, bold };
-  const year = tournamentYear();
-
-  const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  page.drawImage(background, { x: -182.35, y: fromTop(804.55), width: 960, height: 767.25 });
-
-  drawTitleBox(page, bold, "LISTA DE BUENA FE", 48.8);
-  drawTitleBox(page, bold, `TORNEO ARDILLITAS ${year}`, 68);
-
-  drawField(page, fonts, "EQUIPO:", input.clubName, 108, 380);
-  drawLabel(page, bold, "RESULTADOS PARTIDOS:", 386.8, 108);
-
   const [delegate1, delegate2] = pickDelegates(input.staff);
-  drawField(page, fonts, "DELEGADO/DT 1:", delegate1 ? describeStaff(delegate1) : "", 131.5);
-  drawField(page, fonts, "DELEGADO/DT 2:", delegate2 ? describeStaff(delegate2) : "", 158.5);
-  drawField(page, fonts, "CATEGORÍA:", input.categoryLabel, 185.5);
+
+  drawFilled(page, regular, input.clubName, FIELD_X.equipo, FIELD_Y.equipo, 240);
+  drawFilled(page, regular, delegate1 ? describeStaff(delegate1) : "", FIELD_X.dt, FIELD_Y.dt1, 370);
+  drawFilled(page, regular, delegate2 ? describeStaff(delegate2) : "", FIELD_X.dt, FIELD_Y.dt2, 370);
+  drawFilled(page, regular, input.categoryLabel, FIELD_X.categoria, FIELD_Y.categoria, 175);
+  markCategoryYear(page, input.categoryLabel);
 
   const players = [...input.players].sort((a, b) => a.jerseyNumber - b.jerseyNumber);
-  const rowCount = Math.max(MIN_ROWS, players.length);
-  const tableBottom = TABLE_TOP + HEADER_HEIGHT + rowCount * ROW_HEIGHT;
-  const left = TABLE_COLUMNS[0];
-  const right = TABLE_COLUMNS[TABLE_COLUMNS.length - 1];
-  const line = { thickness: 0.5, color: black };
-
-  for (const x of TABLE_COLUMNS) {
-    page.drawLine({ start: { x, y: fromTop(TABLE_TOP) }, end: { x, y: fromTop(tableBottom) }, ...line });
-  }
-  page.drawLine({ start: { x: left, y: fromTop(TABLE_TOP) }, end: { x: right, y: fromTop(TABLE_TOP) }, ...line });
-  for (let i = 0; i <= rowCount; i++) {
-    const y = fromTop(TABLE_TOP + HEADER_HEIGHT + i * ROW_HEIGHT);
-    page.drawLine({ start: { x: left, y }, end: { x: right, y }, ...line });
-  }
-
-  const headerSize = 11;
-  const headerBaseline = TABLE_TOP + 11.5;
-  page.drawText("APELLIDO Y NOMBRE", { x: 83.9, y: fromTop(headerBaseline), size: headerSize, font: bold, color: black });
-  page.drawText("DNI", { x: 265.2, y: fromTop(headerBaseline), size: headerSize, font: bold, color: black });
-  page.drawText("FECHA", { x: 372.3, y: fromTop(headerBaseline), size: headerSize, font: bold, color: black });
-  page.drawText("NACIMIENTO", { x: 372.3, y: fromTop(headerBaseline + 12.5), size: headerSize, font: bold, color: black });
-  page.drawText("FIRMA", { x: 479.4, y: fromTop(headerBaseline), size: headerSize, font: bold, color: black });
-
-  for (let i = 0; i < rowCount; i++) {
-    const baseline = fromTop(TABLE_TOP + HEADER_HEIGHT + i * ROW_HEIGHT + 17.5);
-    page.drawText(`${i + 1}.`, { x: 51, y: baseline, size: 13, font: bold, color: black });
-
+  const size = 10.5;
+  for (let i = 0; i < Math.min(players.length, 14); i++) {
     const player = players[i];
-    if (!player) continue;
-    const size = 10.5;
+    const baseline = fromTop(TABLE_TOP + HEADER_HEIGHT + i * ROW_HEIGHT + ROW_TEXT_OFFSET);
     page.drawText(
       fitText(regular, `${player.lastName}, ${player.firstName}`, size, TABLE_COLUMNS[2] - 83.9 - 4),
       { x: 83.9, y: baseline, size, font: regular, color: black },
@@ -211,43 +182,6 @@ export async function buildAccreditationPdf(input: RosterPdfInput): Promise<Uint
       color: black,
     });
   }
-
-  const footer = [
-    "Esta lista de buena fe fue completada y firmada por los delegados responsables del equipo participante.",
-    "A su vez fue controlada por la gente de coordinación del torneo.",
-    `De esta manera se acepta todo el reglamento pautado para la realización del Torneo Ardillitas ${year} y`,
-    "cualquier decisión que tome la coordinación del mismo.",
-  ];
-  let footerTop = tableBottom + 13;
-  for (const text of footer) {
-    page.drawText(text, { x: MARGIN_X, y: fromTop(footerTop), size: 10.5, font: regular, color: black });
-    footerTop += 16.6;
-  }
-  page.drawText("Firma Delegado 1 ..............................", {
-    x: MARGIN_X,
-    y: fromTop(footerTop),
-    size: 11,
-    font: bold,
-    color: black,
-  });
-  page.drawText("Firma Delegado 2 ..............................", {
-    x: 330,
-    y: fromTop(footerTop),
-    size: 11,
-    font: bold,
-    color: black,
-  });
-
-  const sentAt = new Date()
-    .toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })
-    .replace(/\s/g, " ");
-  page.drawText(toWinAnsi(regular, `Enviada desde la acreditación online el ${sentAt}`), {
-    x: MARGIN_X,
-    y: 24,
-    size: 8,
-    font: regular,
-    color: gray,
-  });
 
   return doc.save();
 }

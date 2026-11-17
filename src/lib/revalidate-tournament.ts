@@ -2,7 +2,11 @@ import { revalidatePath } from "next/cache";
 
 export function revalidateTournamentPages() {
   revalidatePath("/");
+  revalidatePath("/partidos");
   revalidatePath("/partidos", "layout");
+  revalidatePath("/partidos/masculino");
+  revalidatePath("/partidos/femenino");
+  revalidatePath("/equipos", "layout");
   revalidatePath("/tabla", "layout");
 }
 

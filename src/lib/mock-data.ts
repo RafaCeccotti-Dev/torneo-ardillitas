@@ -122,18 +122,80 @@ export const mockPlaces: CityPlace[] = [
     description: "Urgencias y guardia.",
     mapsUrl: "https://maps.google.com/?q=Hospital+Ceres+Santa+Fe",
   },
+  {
+    id: "p3",
+    name: "Escuela Fiscal N° 413",
+    description: "Escuela Domingo F. Sarmiento. Av. Tristán Malbrán 24.",
+    mapsUrl: "https://maps.google.com/?q=Escuela+413+Domingo+Faustino+Sarmiento+Tristan+Malbran+24+Ceres+Santa+Fe",
+  },
+  {
+    id: "p4",
+    name: 'Escuela EETP "Estanislao López"',
+    description: "Escuela técnica. Av. Milano 588.",
+    mapsUrl: "https://maps.google.com/?q=EETP+453+Estanislao+Lopez+Milano+588+Ceres+Santa+Fe",
+  },
+  {
+    id: "p5",
+    name: "Escuela RE",
+    description: "Escuela en Ceres.",
+    mapsUrl: "https://maps.google.com/?q=Escuela+RE+Ceres+Santa+Fe",
+  },
+  {
+    id: "p6",
+    name: "Asociación Noroeste de Básquet",
+    description: "Asociación de básquet del noroeste santafesino.",
+    mapsUrl: "https://maps.google.com/?q=Asociacion+Noroeste+de+Basquet+Ceres+Santa+Fe",
+  },
+  {
+    id: "p7",
+    name: "Liga Ceresina de Fútbol",
+    description: "Sede de la liga. Av. Tristán Malbrán 331.",
+    mapsUrl: "https://maps.google.com/?q=Liga+Ceresina+de+Futbol+Tristan+Malbran+331+Ceres+Santa+Fe",
+  },
+  {
+    id: "p8",
+    name: "Don Balón Eventos",
+    description: "Salón de eventos en Ceres.",
+    mapsUrl: "https://maps.google.com/?q=Don+Balon+Eventos+Ceres+Santa+Fe",
+  },
+  {
+    id: "p9",
+    name: "Escuela Ciclo N° 418",
+    description: "Escuela Enseñanza Media 418 Gral. San Martín. Av. Maipú 150.",
+    mapsUrl: "https://maps.google.com/?q=Escuela+Media+418+General+San+Martin+Maipu+150+Ceres+Santa+Fe",
+  },
+  {
+    id: "p10",
+    name: "Liceo Municipal",
+    description: "Liceo municipal de Ceres.",
+    mapsUrl: "https://maps.google.com/?q=Liceo+Municipal+Ceres+Santa+Fe",
+  },
+  {
+    id: "p11",
+    name: "Escuela Especial",
+    description: "Escuela Especial 2039. Remedios Escalada de San Martín 402.",
+    mapsUrl: "https://maps.google.com/?q=Escuela+Especial+2039+Ceres+Santa+Fe",
+  },
+  {
+    id: "p12",
+    name: "Escuela Nacional",
+    description: "Escuela 6124 Pedro de Vega. San Martín 589.",
+    mapsUrl: "https://maps.google.com/?q=Escuela+Nacional+6124+Pedro+de+Vega+San+Martin+589+Ceres+Santa+Fe",
+  },
+  {
+    id: "p13",
+    name: "Escuela Quilmes",
+    description: "Escuela Quilmes en Ceres.",
+    mapsUrl: "https://maps.google.com/?q=Escuela+Quilmes+Ceres+Santa+Fe",
+  },
+  {
+    id: "p14",
+    name: "Paseo de la Vida",
+    description: "Paseo y espacio público en Ceres.",
+    mapsUrl: "https://maps.google.com/?q=Paseo+de+la+Vida+Ceres+Santa+Fe",
+  },
 ];
 
-export const clubMapImage = "/backgrounds/plano-club.jpeg";
+export const clubMapImage = "/backgrounds/croquis-club.png";
+export const clubMapPdf = "/club/croquis-ccao.pdf";
 
-export const regulation = {
-  pdfUrl: "/reglamento/reglamento.pdf",
-  text: `Reglamento provisorio del torneo.
-
-1. Cada equipo presentará lista de buena fe antes del primer partido.
-2. Los partidos se jugarán en las canchas del club según fixture publicado.
-3. En fase de grupos se otorgan 3 puntos por victoria, 1 por empate.
-4. El fair play es obligatorio: expulsiones pueden implicar sanción de fechas.
-
-El PDF definitivo lo subirá el coordinador desde el panel de administración.`,
-};

@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import {
-  Camera,
   Check,
   ChevronDown,
   Copy,
+  Pencil,
   Plus,
   Send,
   Trash2,
@@ -17,13 +17,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import {
+  MAX_DELEGADOS_PER_TEAM,
   MAX_PLAYERS_PER_CATEGORY,
-  MAX_STAFF_PER_CATEGORY,
-  STAFF_ROLES,
+  MAX_PROFES_PER_TEAM,
+  STAFF_KINDS,
+  countStaffKind,
+  staffKindLabel,
+  type StaffKind,
   type StaffRole,
 } from "@/lib/accreditation";
-import { parseArgentineDniOcr } from "@/lib/dni-ocr";
-import { downloadPdfBase64, sendPdfViaFormSubmitFromBrowser } from "@/lib/send-email-client";
+import { downloadPdfBase64 } from "@/lib/send-email-client";
 import { siteConfig } from "@/config/site";
 import { whatsappUrl } from "@/lib/whatsapp";
 
@@ -35,9 +38,20 @@ type Team = {
   groupName: string;
   logoUrl: string | null;
   playerCount: number;
-  submitted?: boolean;
-  submittedAt?: string | null;
+  sentAt: string | null;
 };
+
+function teamLabel(team: Pick<Team, "yearLabel" | "category" | "groupName">) {
+  return `${team.yearLabel}${team.category === "femenino" ? " · Femenino" : " · Masculino"}${
+    team.groupName ? ` · Grupo ${team.groupName}` : ""
+  }`;
+}
+
+function formatSentAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
+}
 
 type Player = {
   id: string;
@@ -67,7 +81,6 @@ type PanelData = {
   players: Player[];
   staff: Staff[];
   maxPlayers: number;
-  maxStaff: number;
 };
 
 export function AccreditationPanel({ token }: { token: string }) {
@@ -84,7 +97,7 @@ export function AccreditationPanel({ token }: { token: string }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/acreditar/${token}`);
+      const res = await fetch(`/api/acreditar/${token}`, { cache: "no-store" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "No se pudo cargar");
       setData(json);
@@ -117,15 +130,19 @@ export function AccreditationPanel({ token }: { token: string }) {
 
   const usedJerseys = useMemo(() => new Set(players.map((p) => p.jerseyNumber)), [players]);
   const maxPlayers = data?.maxPlayers ?? MAX_PLAYERS_PER_CATEGORY;
-  const maxStaff = data?.maxStaff ?? MAX_STAFF_PER_CATEGORY;
   const totalPlayers = data?.players.length ?? 0;
-  const categoryLocked = Boolean(team?.submitted);
+  const locked = Boolean(team?.sentAt);
+  const otherStaffTeams = useMemo(() => {
+    if (!data) return [];
+    return data.teams.filter(
+      (item) => item.id !== teamId && data.staff.some((member) => member.teamId === item.id),
+    );
+  }, [data, teamId]);
 
   async function addPlayer(form: FormData) {
     setBusy(true);
     setFormError(null);
     form.set("teamId", teamId);
-    form.delete("dniPhoto"); // la foto solo sirve para OCR en el celular
     try {
       const res = await fetch(`/api/acreditar/${token}/players`, { method: "POST", body: form });
       const json = await res.json();
@@ -140,11 +157,8 @@ export function AccreditationPanel({ token }: { token: string }) {
   }
 
   async function removePlayer(id: string) {
-    if (categoryLocked) {
-      alert("Esta categoría ya fue enviada. No se puede borrar.");
-      return;
-    }
-    if (!confirm("¿Sacar este jugador de la lista? Después podés volver a cargarlo.")) return;
+    if (locked) return;
+    if (!confirm("¿Sacar este jugador de la lista?")) return;
     setBusy(true);
     try {
       const res = await fetch(`/api/acreditar/${token}/players?id=${id}`, { method: "DELETE" });
@@ -167,7 +181,7 @@ export function AccreditationPanel({ token }: { token: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamId,
-          role: form.get("role"),
+          kind: form.get("kind"),
           firstName: form.get("firstName"),
           lastName: form.get("lastName"),
           dni: form.get("dni"),
@@ -186,17 +200,8 @@ export function AccreditationPanel({ token }: { token: string }) {
   }
 
   async function removeStaff(id: string) {
-    if (categoryLocked) {
-      alert("Esta categoría ya fue enviada. No se puede borrar.");
-      return;
-    }
-    if (
-      !confirm(
-        "¿Sacar a esta persona del cuerpo técnico? Después podés volver a cargarla.",
-      )
-    ) {
-      return;
-    }
+    if (locked) return;
+    if (!confirm("¿Sacar a esta persona del cuerpo técnico?")) return;
     setBusy(true);
     try {
       const res = await fetch(`/api/acreditar/${token}/staff?id=${id}`, { method: "DELETE" });
@@ -210,15 +215,32 @@ export function AccreditationPanel({ token }: { token: string }) {
     }
   }
 
-  async function sendInscription() {
-    if (!teamId || categoryLocked) return;
-    if (
-      !confirm(
-        "¿Enviar el PDF de esta categoría al coordinador?\n\nDespués de enviarlo NO vas a poder editar, borrar ni volver a cargar esta categoría.",
-      )
-    ) {
-      return;
+  async function copyStaffFrom(sourceTeamId: string) {
+    if (locked) return;
+    setBusy(true);
+    setFormError(null);
+    try {
+      const res = await fetch(`/api/acreditar/${token}/staff`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamId, copyFromTeamId: sourceTeamId }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "No se pudo copiar");
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error");
+    } finally {
+      setBusy(false);
     }
+  }
+
+  async function sendInscription() {
+    if (!teamId) return;
+    const confirmText = locked
+      ? "Esta categoría ya se envió. ¿Reenviar el mismo plantel al correo del coordinador?"
+      : "Después de enviar no vas a poder borrar ni agregar jugadores en esta categoría. ¿Mandar el PDF a torneoardillitas@gmail.com?";
+    if (!confirm(confirmText)) return;
     setBusy(true);
     setSendMsg(null);
     try {
@@ -228,24 +250,14 @@ export function AccreditationPanel({ token }: { token: string }) {
         body: JSON.stringify({ teamId }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "No se pudo enviar");
-
-      if (json.needsClientSend && json.pdfBase64) {
-        downloadPdfBase64(json.pdfBase64, json.filename);
-        await sendPdfViaFormSubmitFromBrowser({
-          to: json.to,
-          subject: json.subject,
-          text: json.text,
-          pdfBase64: json.pdfBase64,
-          filename: json.filename,
-        });
-        setSendMsg(
-          `Se descargó el PDF en este celular. No pudimos confirmar el envío por mail: mandáselo al coordinador (${json.to}) por WhatsApp o mail.`,
-        );
-      } else {
-        setSendMsg(`Listo: PDF enviado a ${json.to} (${json.players} jugadores). Esta categoría quedó cerrada.`);
+      if (!res.ok) {
+        if (json.pdfBase64 && json.filename) {
+          downloadPdfBase64(json.pdfBase64, json.filename);
+        }
+        throw new Error(json.error ?? "No se pudo enviar");
       }
       await load();
+      setSendMsg(`Listo: PDF enviado a ${json.to} (${json.players} jugadores).`);
     } catch (err) {
       setSendMsg(err instanceof Error ? err.message : "Error al enviar");
     } finally {
@@ -334,6 +346,10 @@ export function AccreditationPanel({ token }: { token: string }) {
           {totalPlayers} jugador{totalPlayers === 1 ? "" : "es"} cargado
           {totalPlayers === 1 ? "" : "s"}
         </p>
+        <p className="mt-2 max-w-sm text-xs leading-relaxed text-white/40">
+          Hasta 14 jugadores (no hace falta completarlos). Un jugador no puede repetirse en otra
+          categoría. Profes y delegados sí, hasta 2 de cada uno por equipo.
+        </p>
       </div>
 
       <label className="mt-8 block">
@@ -348,11 +364,8 @@ export function AccreditationPanel({ token }: { token: string }) {
           >
             {data.teams.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.yearLabel}
-                {item.category === "femenino" ? " · Femenino" : " · Masculino"}
-                {item.groupName ? ` · Grupo ${item.groupName}` : ""} · {item.playerCount}/
-                {maxPlayers}
-                {item.submitted ? " · Enviada" : ""}
+                {teamLabel(item)} · {item.playerCount}/{maxPlayers}
+                {item.sentAt ? " · enviada" : ""}
               </option>
             ))}
           </select>
@@ -360,23 +373,12 @@ export function AccreditationPanel({ token }: { token: string }) {
         </div>
       </label>
 
-      {categoryLocked ? (
-        <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
-          <p className="flex items-center gap-2 font-semibold">
-            <Check className="h-4 w-4" />
-            Acreditación enviada
-          </p>
-          <p className="mt-1 text-xs text-emerald-100/80">
-            Esta categoría ya está cerrada. No se puede agregar ni borrar jugadores o cuerpo
-            técnico. Si hay un error, escribinos por WhatsApp.
-          </p>
+      {locked ? (
+        <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+          Acreditación enviada el {formatSentAt(team.sentAt!)}. En esta categoría ya no se puede
+          borrar ni agregar jugadores. Si hay un error, escribinle al coordinador.
         </div>
-      ) : (
-        <p className="mt-6 text-xs leading-relaxed text-white/45">
-          Podés usar el mismo jugador o el mismo cuerpo técnico en otra categoría. Mientras no
-          envíes esta, podés borrar y volver a cargar.
-        </p>
-      )}
+      ) : null}
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
@@ -385,15 +387,13 @@ export function AccreditationPanel({ token }: { token: string }) {
             {players.length}/{maxPlayers}
           </span>
         </div>
-        <p className="mb-3 text-xs text-white/45">
-          Hasta {maxPlayers} jugadores por categoría. No hace falta completar el máximo.
-        </p>
 
         {players.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-8 text-center">
             <Users className="mx-auto h-8 w-8 text-white/35" />
             <p className="mt-3 text-sm text-white/55">
-              Todavía no cargaste ningún jugador en esta categoría.
+              Todavía no cargaste ningún jugador en esta categoría. El tope es 14, pero pueden ser
+              menos.
             </p>
           </div>
         ) : (
@@ -415,7 +415,7 @@ export function AccreditationPanel({ token }: { token: string }) {
                     {player.birthDateDisplay ? ` · ${player.birthDateDisplay}` : ""}
                   </p>
                 </div>
-                {!categoryLocked ? (
+                {!locked ? (
                   <button
                     type="button"
                     disabled={busy}
@@ -431,7 +431,7 @@ export function AccreditationPanel({ token }: { token: string }) {
           </ul>
         )}
 
-        {!categoryLocked ? (
+        {!locked ? (
           <button
             type="button"
             disabled={busy || players.length >= maxPlayers}
@@ -442,26 +442,28 @@ export function AccreditationPanel({ token }: { token: string }) {
             Agregar jugador
           </button>
         ) : null}
+        {!locked && players.length > 0 && players.length < maxPlayers ? (
+          <p className="mt-2 text-center text-xs text-white/40">
+            {players.length} de {maxPlayers}. No hace falta completar los {maxPlayers}.
+          </p>
+        ) : null}
       </section>
 
       <section className="mt-10">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-white">
-            Delegados / cuerpo técnico
+            Cuerpo técnico
           </h2>
           <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/70">
-            {staff.length}/{maxStaff}
+            Profes {countStaffKind("profe", staff)}/{MAX_PROFES_PER_TEAM} · Delegados{" "}
+            {countStaffKind("delegado", staff)}/{MAX_DELEGADOS_PER_TEAM}
           </span>
         </div>
-        <p className="mb-3 text-xs text-white/45">
-          Opcional: hasta {maxStaff} personas (delegado o cuerpo técnico). No hace falta cargar
-          los dos.
-        </p>
         {staff.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-8 text-center">
             <UserCog className="mx-auto h-8 w-8 text-white/35" />
             <p className="mt-3 text-sm text-white/55">
-              Todavía no cargaste delegados ni cuerpo técnico (es opcional).
+              Hasta 2 profes y 2 delegados en esta categoría. Pueden ser los mismos en otra.
             </p>
           </div>
         ) : (
@@ -469,30 +471,28 @@ export function AccreditationPanel({ token }: { token: string }) {
             {staff.map((member) => (
               <li
                 key={member.id}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3"
+                className="flex items-start gap-3 rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3"
               >
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold uppercase tracking-wide text-yellow-400">
-                    {STAFF_ROLES.find((r) => r.value === member.role)?.label ?? member.role}
+                    {staffKindLabel(member.role)}
                   </p>
                   <p className="mt-1 font-semibold text-white">
                     {member.firstName} {member.lastName}
                   </p>
                   {(member.dni || member.phone) && (
                     <p className="mt-0.5 text-xs text-white/45">
-                      {[member.dni && `DNI ${member.dni}`, member.phone]
-                        .filter(Boolean)
-                        .join(" · ")}
+                      {[member.dni && `DNI ${member.dni}`, member.phone].filter(Boolean).join(" · ")}
                     </p>
                   )}
                 </div>
-                {!categoryLocked ? (
+                {!locked ? (
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => void removeStaff(member.id)}
                     className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-red-400"
-                    aria-label="Quitar"
+                    aria-label="Eliminar del cuerpo técnico"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -501,40 +501,49 @@ export function AccreditationPanel({ token }: { token: string }) {
             ))}
           </ul>
         )}
-        {!categoryLocked ? (
+        {!locked && otherStaffTeams.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {otherStaffTeams.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                disabled={busy}
+                onClick={() => void copyStaffFrom(item.id)}
+                className="flex h-12 w-full items-center justify-center rounded-2xl border border-white/15 px-4 text-sm font-semibold text-white/80 hover:bg-white/5 disabled:opacity-40"
+              >
+                Usar el mismo cuerpo técnico de {teamLabel(item)}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {!locked ? (
           <button
             type="button"
-            disabled={busy || staff.length >= maxStaff}
+            disabled={busy}
             onClick={() => setView("staff")}
             className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
           >
-            <Plus className="h-5 w-5" />
-            {staff.length === 0 ? "Agregar delegado / cuerpo técnico" : "Agregar otro"}
+            <Pencil className="h-5 w-5" />
+            Cargar cuerpo técnico
           </button>
         ) : null}
       </section>
 
       <section className="mt-10">
-        {!categoryLocked ? (
-          <>
-            <button
-              type="button"
-              disabled={busy || players.length === 0}
-              onClick={() => void sendInscription()}
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-yellow-400 bg-black text-base font-bold text-yellow-400 transition hover:bg-yellow-400 hover:text-black disabled:opacity-40"
-            >
-              <Send className="h-5 w-5" />
-              Enviar inscripción (PDF)
-            </button>
-            <p className="mt-2 text-center text-xs text-white/40">
-              Al enviar, esta categoría se cierra. Después no se puede editar.
-            </p>
-          </>
-        ) : (
-          <p className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-center text-sm text-white/70">
-            Plantel enviado a {siteConfig.coordinatorEmail}
-          </p>
-        )}
+        <button
+          type="button"
+          disabled={busy || players.length === 0}
+          onClick={() => void sendInscription()}
+          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-yellow-400 bg-black text-base font-bold text-yellow-400 transition hover:bg-yellow-400 hover:text-black disabled:opacity-40"
+        >
+          <Send className="h-5 w-5" />
+          {locked ? "Reenviar PDF al coordinador" : "Enviar inscripción (PDF)"}
+        </button>
+        <p className="mt-2 text-center text-xs text-white/40">
+          {locked
+            ? `El plantel de esta categoría ya está cerrado. El mail va a ${siteConfig.coordinatorEmail}.`
+            : `Manda el plantel de esta categoría a ${siteConfig.coordinatorEmail}. Después no se puede borrar jugadores.`}
+        </p>
         {sendMsg ? (
           <p className="mt-3 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-sm text-yellow-100">
             {sendMsg}
@@ -650,47 +659,6 @@ function AddPlayerForm({
   onClose: () => void;
   onSubmit: (form: FormData) => void;
 }) {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [scanning, setScanning] = useState(false);
-  const [scanHint, setScanHint] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [dni, setDni] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-
-  async function readDniPhoto(file: File) {
-    setPreview(URL.createObjectURL(file));
-    setScanning(true);
-    setScanHint("Leyendo el DNI…");
-    try {
-      const { createWorker } = await import("tesseract.js");
-      const worker = await createWorker("spa");
-      const {
-        data: { text },
-      } = await worker.recognize(file);
-      await worker.terminate();
-
-      const parsed = parseArgentineDniOcr(text);
-      if (parsed.firstName) setFirstName(parsed.firstName);
-      if (parsed.lastName) setLastName(parsed.lastName);
-      if (parsed.dni) setDni(parsed.dni);
-      if (parsed.birthDate) setBirthDate(parsed.birthDate);
-
-      const filled = [parsed.firstName, parsed.lastName, parsed.dni, parsed.birthDate].filter(
-        Boolean,
-      ).length;
-      setScanHint(
-        filled >= 2
-          ? "Listo: revisá los datos y elegí el número de camiseta."
-          : "No se pudo leer bien. Completá a mano o sacá otra foto más nítida.",
-      );
-    } catch {
-      setScanHint("No se pudo leer la foto. Completá los datos a mano.");
-    } finally {
-      setScanning(false);
-    }
-  }
-
   return (
     <div className="mx-auto min-h-screen max-w-lg px-4 pb-10 pt-4">
       <div className="mb-6 flex items-center gap-3">
@@ -712,46 +680,10 @@ function AddPlayerForm({
           onSubmit(new FormData(e.currentTarget));
         }}
       >
-        <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-yellow-400/50 bg-zinc-900 px-4 py-8 text-center">
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            disabled={scanning || busy}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void readDniPhoto(file);
-              else {
-                setPreview(null);
-                setScanHint(null);
-              }
-            }}
-          />
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="Vista previa DNI" className="mb-3 max-h-40 rounded-xl object-contain" />
-          ) : (
-            <Camera className="mb-3 h-10 w-10 text-yellow-400" />
-          )}
-          <p className="font-semibold text-white">
-            {scanning ? "Leyendo DNI…" : "Sacale una foto al DNI"}
-          </p>
-          <p className="mt-1 text-sm text-white/50">para autocompletar los datos</p>
-          <p className="mt-3 text-xs text-white/35">
-            La foto no se guarda: solo se lee en tu celular y se descarta.
-          </p>
-          {scanHint ? (
-            <p className="mt-3 text-xs font-medium text-yellow-300">{scanHint}</p>
-          ) : null}
-        </label>
-
         <Field label="Nombre">
           <input
             name="firstName"
             required
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
             autoComplete="given-name"
           />
@@ -760,8 +692,6 @@ function AddPlayerForm({
           <input
             name="lastName"
             required
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
             autoComplete="family-name"
           />
@@ -772,8 +702,6 @@ function AddPlayerForm({
             required
             inputMode="numeric"
             placeholder="Sin puntos"
-            value={dni}
-            onChange={(e) => setDni(e.target.value)}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
           />
         </Field>
@@ -782,8 +710,6 @@ function AddPlayerForm({
             name="birthDate"
             required
             placeholder="dd/mm/aaaa"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
           />
         </Field>
@@ -819,7 +745,7 @@ function AddPlayerForm({
 
         <button
           type="submit"
-          disabled={busy || scanning}
+          disabled={busy}
           className="flex h-14 w-full items-center justify-center rounded-2xl bg-yellow-400 text-base font-bold text-black hover:bg-yellow-300 disabled:opacity-50"
         >
           {busy ? "Guardando…" : "Agregar jugador"}
@@ -832,6 +758,7 @@ function AddPlayerForm({
 function StaffForm({
   busy,
   error,
+  existing,
   onClose,
   onSubmit,
 }: {
@@ -841,6 +768,11 @@ function StaffForm({
   onClose: () => void;
   onSubmit: (form: FormData) => void;
 }) {
+  const availableKinds = STAFF_KINDS.filter(
+    (item) => countStaffKind(item.value, existing) < item.max,
+  );
+  const [kind, setKind] = useState<StaffKind>(availableKinds[0]?.value ?? "profe");
+
   return (
     <div className="mx-auto min-h-screen max-w-lg px-4 pb-10 pt-4">
       <div className="mb-6 flex items-center gap-3">
@@ -852,11 +784,19 @@ function StaffForm({
         >
           <X className="h-6 w-6" />
         </button>
-        <div>
-          <h1 className="text-xl font-bold text-white">Delegado / cuerpo técnico</h1>
-          <p className="text-xs text-white/45">Opcional · máximo {MAX_STAFF_PER_CATEGORY}</p>
-        </div>
+        <h1 className="text-xl font-bold text-white">Cuerpo técnico</h1>
       </div>
+
+      <p className="mb-4 text-sm text-white/50">
+        Hasta 2 profes y 2 delegados en esta categoría. En otra categoría del mismo club pueden
+        repetirse.
+      </p>
+
+      {availableKinds.length === 0 ? (
+        <p className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-sm text-yellow-100">
+          Ya están los 2 profes y los 2 delegados de esta categoría.
+        </p>
+      ) : null}
 
       <form
         className="space-y-4"
@@ -867,14 +807,16 @@ function StaffForm({
       >
         <Field label="Rol">
           <select
-            name="role"
-            defaultValue="dt"
+            name="kind"
+            value={kind}
+            onChange={(e) => setKind(e.target.value as StaffKind)}
             className="h-14 w-full rounded-[0.9rem] border border-white/10 bg-zinc-900 px-4 text-white outline-none focus:border-yellow-400"
             required
+            disabled={availableKinds.length === 0}
           >
-            {STAFF_ROLES.map((role) => (
-              <option key={role.value} value={role.value}>
-                {role.label}
+            {availableKinds.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label} ({countStaffKind(item.value, existing)}/{item.max})
               </option>
             ))}
           </select>
@@ -916,7 +858,7 @@ function StaffForm({
 
         <button
           type="submit"
-          disabled={busy}
+          disabled={busy || availableKinds.length === 0}
           className="flex h-14 w-full items-center justify-center rounded-2xl bg-yellow-400 text-base font-bold text-black hover:bg-yellow-300 disabled:opacity-50"
         >
           {busy ? "Guardando…" : "Guardar"}

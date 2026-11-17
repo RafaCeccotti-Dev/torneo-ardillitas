@@ -64,3 +64,13 @@ export function listYearLabels(
   const extras = extraLabels.filter((label) => !fromConfig.includes(label));
   return [...fromConfig, ...extras.sort()];
 }
+
+export const yearToSlug = yearLabelToSlug;
+
+export function yearFromSlug(categoria: TournamentCategorySlug, slug: string) {
+  return resolveYearLabel(slug, categoria) ?? slug;
+}
+
+export function yearsForCategory(categoria: TournamentCategorySlug, extraYears: string[] = []) {
+  return listYearLabels(categoria, extraYears);
+}

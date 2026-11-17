@@ -1,5 +1,20 @@
 import type { Match, StandingRow, Team } from "@/lib/types";
 
+export function isGeneralTable(group: string) {
+  return group.trim().toUpperCase() === "PEND";
+}
+
+export function groupHeading(group: string) {
+  return isGeneralTable(group) ? "Tabla general" : `Grupo ${group}`;
+}
+
+export function sortGroupNames(groups: string[]) {
+  return [...groups].sort((a, b) => {
+    if (isGeneralTable(a) !== isGeneralTable(b)) return isGeneralTable(a) ? 1 : -1;
+    return a.localeCompare(b);
+  });
+}
+
 export function computeStandingsByGroup(teams: Team[], matches: Match[]) {
   const groups: Record<string, Map<string, StandingRow>> = {};
   const teamById = new Map(teams.map((team) => [team.id, team]));

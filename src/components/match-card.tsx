@@ -1,44 +1,47 @@
 import Image from "next/image";
+import Link from "next/link";
 
-import type { Match } from "@/lib/types";
+import { clubSlug } from "@/lib/club";
 import { formatKickoff } from "@/lib/kickoff";
+import type { Match, Team } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function TeamBadge({
-  name,
-  logoUrl,
+  team,
   compact,
 }: {
-  name: string;
-  logoUrl?: string | null;
+  team: Team;
   compact?: boolean;
 }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center sm:gap-2">
+    <Link
+      href={`/equipos/${clubSlug(team)}`}
+      className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center transition hover:opacity-90 sm:gap-2"
+    >
       <div
         className={cn(
           "flex items-center justify-center overflow-hidden rounded-full border border-yellow-400/30 bg-black/40",
           compact ? "h-11 w-11 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14",
         )}
       >
-        {logoUrl ? (
+        {team.logoUrl ? (
           <Image
-            src={logoUrl}
-            alt={name}
+            src={team.logoUrl}
+            alt={team.name}
             width={56}
             height={56}
             className="h-full w-full object-cover"
           />
         ) : (
           <span className="text-sm font-bold text-yellow-400 sm:text-lg">
-            {name.slice(0, 2).toUpperCase()}
+            {team.name.slice(0, 2).toUpperCase()}
           </span>
         )}
       </div>
-      <span className="line-clamp-2 max-w-[7.5rem] text-xs font-medium leading-snug text-white sm:max-w-[9rem] sm:text-sm">
-        {name}
+      <span className="line-clamp-2 max-w-[7.5rem] text-xs font-medium leading-snug text-white underline-offset-2 hover:text-yellow-400 hover:underline sm:max-w-[9rem] sm:text-sm">
+        {team.name}
       </span>
-    </div>
+    </Link>
   );
 }
 
@@ -86,11 +89,7 @@ export function MatchCard({
       </div>
 
       <div className="flex items-center justify-between gap-2 sm:gap-3">
-        <TeamBadge
-          name={match.homeTeam.name}
-          logoUrl={match.homeTeam.logoUrl}
-          compact={compactGroup}
-        />
+        <TeamBadge team={match.homeTeam} compact={compactGroup} />
         <div className="shrink-0 px-1 text-center">
           {hasScore ? (
             <p className="text-2xl font-black tabular-nums text-white sm:text-3xl">
@@ -106,11 +105,7 @@ export function MatchCard({
           </p>
           <p className="text-[11px] font-medium text-yellow-400 sm:text-xs">{match.court}</p>
         </div>
-        <TeamBadge
-          name={match.awayTeam.name}
-          logoUrl={match.awayTeam.logoUrl}
-          compact={compactGroup}
-        />
+        <TeamBadge team={match.awayTeam} compact={compactGroup} />
       </div>
     </article>
   );

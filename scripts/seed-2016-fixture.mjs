@@ -1,12 +1,13 @@
 /**
- * Prueba: masculino 2016 — 4 grupos (A–D), todos vs todos + resultados,
- * cuartos 1A-2B / 1B-2A / 1C-2D / 1D-2C.
- *
- * Uso: node scripts/seed-2016-fixture.mjs
+ * DESHABILITADO: armaba grupos y partidos ficticios de masculino 2016.
+ * Los equipos los carga el coordinador y los grupos se asignan desde el admin.
  */
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+console.error("seed-2016-fixture.mjs está deshabilitado. No vuelve a armar grupos ficticios.");
+process.exit(1);
 
 function loadEnv(file) {
   const raw = readFileSync(resolve(process.cwd(), file), "utf8");

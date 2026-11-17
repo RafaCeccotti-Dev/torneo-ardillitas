@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { randomToken } from "@/lib/accreditation";
+import { getSentMap } from "@/lib/accreditation-server";
 import { requireAdmin } from "@/lib/admin-auth";
 
 function publicLogoUrl(
@@ -82,6 +83,10 @@ export async function GET() {
   const portalsWithTeams = await Promise.all(
     (portals ?? []).map(async (portal) => {
       const { teams } = await teamsForClub(supabase, portal.name);
+      const sentMap = await getSentMap(
+        supabase,
+        teams.map((team: { id: string }) => team.id),
+      );
       return {
         id: portal.id,
         token: portal.token,
@@ -104,6 +109,7 @@ export async function GET() {
             category: team.category,
             yearLabel: team.year_label,
             groupName: team.group_name,
+            sentAt: sentMap.get(team.id) ?? null,
           }),
         ),
         url: origin ? `${origin}/acreditar/${portal.token}` : `/acreditar/${portal.token}`,

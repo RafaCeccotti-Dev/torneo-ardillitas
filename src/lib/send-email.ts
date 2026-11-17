@@ -44,26 +44,38 @@ export async function sendPdfEmail(input: SendPdfEmailInput) {
   }
 
   const gmailUser = process.env.GMAIL_USER?.trim();
-  const gmailPass = process.env.GMAIL_APP_PASSWORD?.trim();
+  const gmailPass = process.env.GMAIL_APP_PASSWORD?.trim().replace(/\s/g, "");
   if (gmailUser && gmailPass) {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: gmailUser, pass: gmailPass },
-    });
-    await transporter.sendMail({
-      from: `Torneo Ardillitas <${gmailUser}>`,
-      to: input.to,
-      subject: input.subject,
-      text: input.text,
-      attachments: [
-        {
-          filename: input.filename,
-          content: Buffer.from(input.pdfBytes),
-          contentType: "application/pdf",
-        },
-      ],
-    });
-    return { provider: "gmail" as const };
+    try {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: gmailUser, pass: gmailPass },
+      });
+      await transporter.sendMail({
+        from: `Torneo Ardillitas <${gmailUser}>`,
+        to: input.to,
+        subject: input.subject,
+        text: input.text,
+        attachments: [
+          {
+            filename: input.filename,
+            content: Buffer.from(input.pdfBytes),
+            contentType: "application/pdf",
+          },
+        ],
+      });
+      return { provider: "gmail" as const };
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : String(err);
+      if (/invalid login|username and password|authentication/i.test(raw)) {
+        throw new Error(
+          "El correo del torneo no está bien configurado. Avisá al admin antes de seguir acreditando.",
+        );
+      }
+      throw new Error(
+        `No se pudo enviar el mail a ${input.to}. Reintentá en un minuto. El plantel no se cerró.`,
+      );
+    }
   }
 
   return null;

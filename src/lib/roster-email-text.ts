@@ -1,4 +1,4 @@
-import { STAFF_ROLES, formatBirthDateDisplay, type StaffRole } from "@/lib/accreditation";
+import { formatBirthDateDisplay, staffKindLabel, type StaffRole } from "@/lib/accreditation";
 
 type RosterMailPlayer = {
   firstName: string;
@@ -36,7 +36,7 @@ export function buildRosterEmailText(input: {
     lines.push("(sin cuerpo técnico cargado)");
   } else {
     for (const member of input.staff) {
-      const role = STAFF_ROLES.find((r) => r.value === member.role)?.label ?? member.role;
+      const role = staffKindLabel(member.role);
       lines.push(
         `- ${role}: ${member.firstName} ${member.lastName}` +
           (member.dni ? ` | DNI ${member.dni}` : "") +

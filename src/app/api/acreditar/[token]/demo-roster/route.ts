@@ -70,6 +70,10 @@ export async function POST(
   request: Request,
   { params }: { params: { token: string } },
 ) {
+  if (process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "No disponible" }, { status: 404 });
+  }
+
   const svc = serviceOrError();
   if ("error" in svc && svc.error) return svc.error;
   const { supabase } = svc;
