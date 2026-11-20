@@ -3,14 +3,14 @@ import { cn } from "@/lib/utils";
 
 const variants = {
   footer: {
-    duration: "35s",
+    duration: "52s",
     item: "px-3 md:px-4",
     logo: "h-20 w-[200px] opacity-85 group-hover:opacity-100 sm:h-24 sm:w-[240px]",
   },
   header: {
     duration: "45s",
-    item: "px-2",
-    logo: "h-10 w-[100px] opacity-55 group-hover:opacity-100",
+    item: "px-3 md:px-4",
+    logo: "h-14 w-[150px] opacity-80 group-hover:opacity-100 sm:h-16 sm:w-[180px] lg:h-[72px] lg:w-[210px]",
   },
 } as const;
 

@@ -36,8 +36,8 @@ export default function ClubPage() {
             <Image
               src={clubMapImage}
               alt="Croquis del predio del Club Central Argentino Olímpico"
-              width={4200}
-              height={1185}
+              width={4174}
+              height={1142}
               className="h-[280px] w-auto max-w-none sm:h-[340px] lg:h-[400px]"
               sizes="100vw"
               priority

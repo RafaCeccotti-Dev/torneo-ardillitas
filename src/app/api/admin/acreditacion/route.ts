@@ -112,7 +112,7 @@ export async function GET() {
             sentAt: sentMap.get(team.id) ?? null,
           }),
         ),
-        url: origin ? `${origin}/acreditar/${portal.token}` : `/acreditar/${portal.token}`,
+        url: origin ? `${origin}/plantel/${portal.token}` : `/plantel/${portal.token}`,
       };
     }),
   );
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "Ya existe un link para ese club. Copiá el que está en la lista.",
-        portal: { id: existing.id, token: existing.token, name, url: `/acreditar/${existing.token}` },
+        portal: { id: existing.id, token: existing.token, name, url: `/plantel/${existing.token}` },
       },
       { status: 409 },
     );
@@ -194,7 +194,7 @@ export async function POST(request: Request) {
       id: portal.id,
       token: portal.token,
       name: portal.name,
-      url: `/acreditar/${portal.token}`,
+      url: `/plantel/${portal.token}`,
       categories: teams.length,
     },
   });

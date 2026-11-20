@@ -19,6 +19,10 @@ export function createServiceClient() {
       autoRefreshToken: false,
       detectSessionInUrl: false,
     },
+    global: {
+      fetch: (url: RequestInfo | URL, init?: RequestInit) =>
+        fetch(url, { ...init, cache: "no-store" }),
+    },
   });
 }
 

@@ -16,5 +16,14 @@ export async function requireAdmin() {
     return { error: NextResponse.json({ error: "No autorizado" }, { status: 401 }) };
   }
 
+  const allowed = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+  const email = user.email?.trim().toLowerCase() ?? "";
+  if (allowed.length && !allowed.includes(email)) {
+    return { error: NextResponse.json({ error: "No autorizado" }, { status: 401 }) };
+  }
+
   return { supabase };
 }

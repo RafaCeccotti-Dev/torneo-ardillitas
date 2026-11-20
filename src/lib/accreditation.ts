@@ -1,6 +1,6 @@
 /** Tope por categoría/equipo: no es obligatorio completar el máximo. */
 export const MAX_PLAYERS_PER_CATEGORY = 14;
-/** Delegados / cuerpo técnico por categoría: 0, 1 o 2 (ninguno obligatorio). */
+/** Cuerpo técnico (profes + delegados) por categoría: 0, 1 o 2. La planilla solo tiene 2 renglones. */
 export const MAX_STAFF_PER_CATEGORY = 2;
 export const MAX_PROFES_PER_TEAM = 2;
 export const MAX_DELEGADOS_PER_TEAM = 2;
@@ -18,8 +18,8 @@ export const STAFF_ROLES = [
 export type StaffRole = (typeof STAFF_ROLES)[number]["value"];
 
 export const STAFF_KINDS = [
-  { value: "profe", label: "Profe / DT", max: MAX_PROFES_PER_TEAM },
-  { value: "delegado", label: "Delegado", max: MAX_DELEGADOS_PER_TEAM },
+  { value: "profe", label: "Profe / DT", max: MAX_STAFF_PER_CATEGORY },
+  { value: "delegado", label: "Delegado", max: MAX_STAFF_PER_CATEGORY },
   { value: "medico", label: "Médico / kinesiólogo", max: 1 },
 ] as const;
 

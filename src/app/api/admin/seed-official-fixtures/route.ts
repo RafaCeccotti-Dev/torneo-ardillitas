@@ -5,6 +5,7 @@ import {
   officialFixtures,
   type OfficialYearFixture,
 } from "@/data/official-fixtures-2015-2017";
+import { isProductionLocked, productionLockedResponse } from "@/lib/production-lock";
 import { revalidateTournamentPages } from "@/lib/revalidate-tournament";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 import { isSupabaseConfigured } from "@/lib/supabase/public";
@@ -98,6 +99,7 @@ async function upsertPlaceholder(
 }
 
 export async function POST(request: Request) {
+  if (isProductionLocked()) return productionLockedResponse();
   if (!authorize(request)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }

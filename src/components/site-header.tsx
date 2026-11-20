@@ -42,7 +42,7 @@ export function SiteHeader({ className }: { className?: string }) {
           {siteConfig.sponsors.length > 0 ? (
             <SponsorsMarquee
               variant="header"
-              className="hidden min-w-0 max-w-xl flex-1 md:block"
+              className="hidden min-w-0 flex-1 md:block"
             />
           ) : null}
 
@@ -112,6 +112,9 @@ export function SiteFooter() {
           </a>
         </p>
       </div>
+      <p className="mt-8 text-xs leading-relaxed text-white/45">
+        © 2026 Club Central Argentino Olímpico de Ceres. Todos los derechos reservados.
+      </p>
     </footer>
   );
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isProductionLocked, productionLockedResponse } from "@/lib/production-lock";
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidateTournamentPages } from "@/lib/revalidate-tournament";
 
@@ -18,6 +19,7 @@ function authorize(request: Request) {
 
 /** Preview o limpieza: saca grupos ficticios 2016 y borra partidos de esa categoría. No borra equipos. */
 export async function GET(request: Request) {
+  if (isProductionLocked()) return productionLockedResponse();
   const denied = authorize(request);
   if (denied) return denied;
 

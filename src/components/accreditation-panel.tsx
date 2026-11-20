@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+
+import { TeamCrest } from "@/components/team-crest";
 import {
   Check,
   ChevronDown,
@@ -17,9 +19,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import {
-  MAX_DELEGADOS_PER_TEAM,
   MAX_PLAYERS_PER_CATEGORY,
-  MAX_PROFES_PER_TEAM,
+  MAX_STAFF_PER_CATEGORY,
   STAFF_KINDS,
   countStaffKind,
   staffKindLabel,
@@ -237,9 +238,9 @@ export function AccreditationPanel({ token }: { token: string }) {
 
   async function sendInscription() {
     if (!teamId) return;
-    const confirmText = locked
-      ? "Esta categoría ya se envió. ¿Reenviar el mismo plantel al correo del coordinador?"
-      : "Después de enviar no vas a poder borrar ni agregar jugadores en esta categoría. ¿Mandar el PDF a torneoardillitas@gmail.com?";
+    if (locked) return;
+    const confirmText =
+      "Después de enviar no vas a poder borrar ni agregar jugadores en esta categoría. ¿Mandar el PDF a torneoardillitas@gmail.com?";
     if (!confirm(confirmText)) return;
     setBusy(true);
     setSendMsg(null);
@@ -317,16 +318,15 @@ export function AccreditationPanel({ token }: { token: string }) {
   return (
     <div className="mx-auto min-h-screen max-w-lg px-4 pb-10 pt-8">
       <div className="flex flex-col items-center text-center">
-        <div className="relative h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-zinc-900">
-          {data.portal.logoUrl || team.logoUrl ? (
-            <Image
-              src={data.portal.logoUrl || team.logoUrl || ""}
-              alt={data.portal.name}
-              fill
-              className="object-contain p-2"
-              sizes="80px"
-            />
-          ) : (
+        {data.portal.logoUrl || team.logoUrl ? (
+          <TeamCrest
+            src={data.portal.logoUrl || team.logoUrl}
+            name={data.portal.name}
+            size="club"
+            className="h-20 w-20"
+          />
+        ) : (
+          <div className="relative h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-zinc-900">
             <Image
               src={siteConfig.logos.header}
               alt="Ardillitas"
@@ -334,8 +334,8 @@ export function AccreditationPanel({ token }: { token: string }) {
               className="object-contain p-2"
               sizes="80px"
             />
-          )}
-        </div>
+          </div>
+        )}
         <p className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-yellow-400">
           {editionLabel}
         </p>
@@ -348,7 +348,7 @@ export function AccreditationPanel({ token }: { token: string }) {
         </p>
         <p className="mt-2 max-w-sm text-xs leading-relaxed text-white/40">
           Hasta 14 jugadores (no hace falta completarlos). Un jugador no puede repetirse en otra
-          categoría. Profes y delegados sí, hasta 2 de cada uno por equipo.
+          categoría. Cuerpo técnico: máximo 2 personas por categoría.
         </p>
       </div>
 
@@ -455,15 +455,15 @@ export function AccreditationPanel({ token }: { token: string }) {
             Cuerpo técnico
           </h2>
           <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/70">
-            Profes {countStaffKind("profe", staff)}/{MAX_PROFES_PER_TEAM} · Delegados{" "}
-            {countStaffKind("delegado", staff)}/{MAX_DELEGADOS_PER_TEAM}
+            {staff.length}/{MAX_STAFF_PER_CATEGORY} en total
           </span>
         </div>
         {staff.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-8 text-center">
             <UserCog className="mx-auto h-8 w-8 text-white/35" />
             <p className="mt-3 text-sm text-white/55">
-              Hasta 2 profes y 2 delegados en esta categoría. Pueden ser los mismos en otra.
+              Solo 2 personas en total. No se pueden cargar 4. Pueden ser las mismas en otra
+              categoría.
             </p>
           </div>
         ) : (
@@ -501,7 +501,7 @@ export function AccreditationPanel({ token }: { token: string }) {
             ))}
           </ul>
         )}
-        {!locked && otherStaffTeams.length > 0 ? (
+        {!locked && staff.length < MAX_STAFF_PER_CATEGORY && otherStaffTeams.length > 0 ? (
           <div className="mt-3 space-y-2">
             {otherStaffTeams.map((item) => (
               <button
@@ -519,12 +519,14 @@ export function AccreditationPanel({ token }: { token: string }) {
         {!locked ? (
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || staff.length >= MAX_STAFF_PER_CATEGORY}
             onClick={() => setView("staff")}
             className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 text-base font-bold text-black transition hover:bg-yellow-300 disabled:opacity-40"
           >
             <Pencil className="h-5 w-5" />
-            Cargar cuerpo técnico
+            {staff.length >= MAX_STAFF_PER_CATEGORY
+              ? "Ya están los 2 del cuerpo técnico"
+              : "Cargar cuerpo técnico"}
           </button>
         ) : null}
       </section>
@@ -532,16 +534,16 @@ export function AccreditationPanel({ token }: { token: string }) {
       <section className="mt-10">
         <button
           type="button"
-          disabled={busy || players.length === 0}
+          disabled={busy || players.length === 0 || locked}
           onClick={() => void sendInscription()}
           className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-yellow-400 bg-black text-base font-bold text-yellow-400 transition hover:bg-yellow-400 hover:text-black disabled:opacity-40"
         >
           <Send className="h-5 w-5" />
-          {locked ? "Reenviar PDF al coordinador" : "Enviar inscripción (PDF)"}
+          {locked ? "Acreditación enviada" : "Enviar inscripción (PDF)"}
         </button>
         <p className="mt-2 text-center text-xs text-white/40">
           {locked
-            ? `El plantel de esta categoría ya está cerrado. El mail va a ${siteConfig.coordinatorEmail}.`
+            ? `El plantel de esta categoría ya está cerrado y llegó a ${siteConfig.coordinatorEmail}.`
             : `Manda el plantel de esta categoría a ${siteConfig.coordinatorEmail}. Después no se puede borrar jugadores.`}
         </p>
         {sendMsg ? (
@@ -768,9 +770,11 @@ function StaffForm({
   onClose: () => void;
   onSubmit: (form: FormData) => void;
 }) {
-  const availableKinds = STAFF_KINDS.filter(
-    (item) => countStaffKind(item.value, existing) < item.max,
-  );
+  const remaining = MAX_STAFF_PER_CATEGORY - existing.length;
+  const availableKinds =
+    remaining <= 0
+      ? []
+      : STAFF_KINDS.filter((item) => countStaffKind(item.value, existing) < item.max);
   const [kind, setKind] = useState<StaffKind>(availableKinds[0]?.value ?? "profe");
 
   return (
@@ -788,13 +792,13 @@ function StaffForm({
       </div>
 
       <p className="mb-4 text-sm text-white/50">
-        Hasta 2 profes y 2 delegados en esta categoría. En otra categoría del mismo club pueden
+        Máximo 2 personas en total (profes o delegados). En otra categoría del mismo club pueden
         repetirse.
       </p>
 
       {availableKinds.length === 0 ? (
         <p className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-sm text-yellow-100">
-          Ya están los 2 profes y los 2 delegados de esta categoría.
+          Ya están los 2 del cuerpo técnico de esta categoría.
         </p>
       ) : null}
 
@@ -816,7 +820,7 @@ function StaffForm({
           >
             {availableKinds.map((item) => (
               <option key={item.value} value={item.value}>
-                {item.label} ({countStaffKind(item.value, existing)}/{item.max})
+                {item.label} · queda {remaining} de {MAX_STAFF_PER_CATEGORY}
               </option>
             ))}
           </select>

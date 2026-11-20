@@ -10,9 +10,8 @@ export default function ReglamentoPage() {
         description="Elegí masculino o femenino para ver el reglamento oficial."
       >
         <TournamentCategoryPicker
-          hrefBase="/reglamento"
-          cta="Ver reglamento →"
-          description="Reglamento oficial Ardillitas 2026, con PDF para descargar."
+          basePath="/reglamento"
+          ctaLabel="Ver reglamento →"
         />
       </ContentSection>
     </PageBackground>

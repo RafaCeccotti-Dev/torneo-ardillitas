@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 
 import { isTeamSubmitted, markTeamSubmitted } from "@/lib/accreditation-access";
-import { buildAccreditationPdf } from "@/lib/accreditation-pdf";
+import {
+  categoryLabel,
+  MAX_PLAYERS_PER_CATEGORY,
+  MAX_STAFF_PER_CATEGORY,
+} from "@/lib/accreditation";
+import { assertAccreditationPdf } from "@/lib/accreditation-pdf-assert";
+import { buildAccreditationPdf, normalizeRosterPlayers, parseJerseyNumber } from "@/lib/accreditation-pdf";
 import { buildRosterEmailText } from "@/lib/roster-email-text";
 import { COORDINATOR_EMAIL, sendPdfEmail } from "@/lib/send-email";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function serviceOrError() {
   if (!hasServiceRole()) {
@@ -25,16 +34,6 @@ function serviceOrError() {
       ),
     };
   }
-}
-
-function categoryLabel(team: {
-  year_label: string;
-  category: string;
-  group_name: string;
-}) {
-  const gender = team.category === "femenino" ? "Femenino" : "Masculino";
-  const group = team.group_name ? ` · Grupo ${team.group_name}` : "";
-  return `${team.year_label} · ${gender}${group}`;
 }
 
 export async function POST(
@@ -95,17 +94,27 @@ export async function POST(
     );
   }
 
-  const [{ data: players }, { data: staff }] = await Promise.all([
-    supabase
-      .from("accreditation_players")
-      .select("first_name, last_name, dni, birth_date, jersey_number")
-      .eq("team_id", teamId)
-      .order("jersey_number", { ascending: true }),
-    supabase
-      .from("accreditation_staff")
-      .select("role, first_name, last_name, dni, phone")
-      .eq("team_id", teamId),
-  ]);
+  const [{ data: players, error: playersError }, { data: staff, error: staffError }] =
+    await Promise.all([
+      supabase
+        .from("accreditation_players")
+        .select("first_name, last_name, dni, birth_date, jersey_number")
+        .eq("team_id", teamId),
+      supabase
+        .from("accreditation_staff")
+        .select("role, first_name, last_name, dni, phone")
+        .eq("team_id", teamId),
+    ]);
+
+  if (playersError || staffError) {
+    return NextResponse.json(
+      {
+        error:
+          "No se pudo leer el plantel. Esperá unos segundos y reintentá.",
+      },
+      { status: 503 },
+    );
+  }
 
   if (!players?.length) {
     return NextResponse.json(
@@ -114,15 +123,33 @@ export async function POST(
     );
   }
 
+  if (team.category !== "femenino" && !String(team.group_name ?? "").trim()) {
+    return NextResponse.json(
+      { error: "Esta categoría no tiene grupo. Avisá a la organización antes de enviar." },
+      { status: 400 },
+    );
+  }
+
+  let rosterPlayers;
+  try {
+    rosterPlayers = normalizeRosterPlayers(
+      players.slice(0, MAX_PLAYERS_PER_CATEGORY).map((p) => ({
+        firstName: p.first_name,
+        lastName: p.last_name,
+        dni: p.dni,
+        birthDate: p.birth_date,
+        jerseyNumber: parseJerseyNumber(p.jersey_number),
+      })),
+    );
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "El plantel está incompleto" },
+      { status: 400 },
+    );
+  }
+
   const label = categoryLabel(team);
-  const rosterPlayers = (players ?? []).map((p) => ({
-    firstName: p.first_name,
-    lastName: p.last_name,
-    dni: p.dni,
-    birthDate: p.birth_date,
-    jerseyNumber: p.jersey_number,
-  }));
-  const rosterStaff = (staff ?? []).map((s) => ({
+  const rosterStaff = (staff ?? []).slice(0, MAX_STAFF_PER_CATEGORY).map((s) => ({
     role: s.role,
     firstName: s.first_name,
     lastName: s.last_name,
@@ -137,19 +164,29 @@ export async function POST(
     staff: rosterStaff,
   });
 
-  const pdfBytes = await buildAccreditationPdf({
-    clubName: portal.name,
-    categoryLabel: label,
-    players: rosterPlayers,
-    staff: rosterStaff,
-  });
-
-  const filename = `plantel-${portal.name}-${team.year_label}.pdf`
-    .replace(/\s+/g, "-")
-    .toLowerCase();
-  const subject = `Inscripción plantel · ${portal.name} · ${label}`;
-
   try {
+    const pdfBytes = await buildAccreditationPdf({
+      clubName: portal.name,
+      categoryLabel: label,
+      players: rosterPlayers,
+      staff: rosterStaff,
+    });
+    try {
+      await assertAccreditationPdf(pdfBytes, {
+        clubName: portal.name,
+        categoryLabel: label,
+        players: rosterPlayers,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (!/fake worker|pdf\.worker/i.test(msg)) throw err;
+    }
+
+    const filename = `plantel-${portal.name}-${team.year_label}.pdf`
+      .replace(/\s+/g, "-")
+      .toLowerCase();
+    const subject = `Inscripción plantel · ${portal.name} · ${label}`;
+
     const result = await sendPdfEmail({
       to: COORDINATOR_EMAIL,
       subject,
@@ -158,45 +195,40 @@ export async function POST(
       filename,
     });
 
+    if (!result) {
+      return NextResponse.json(
+        {
+          error:
+            "No se pudo enviar el mail al coordinador. El plantel NO se cerró. Reintentá en un minuto.",
+        },
+        { status: 503 },
+      );
+    }
+
     const lock = await markTeamSubmitted(supabase, {
       teamId,
       portalId: portal.id,
-      playerCount: players.length,
-      staffCount: staff?.length ?? 0,
+      playerCount: rosterPlayers.length,
+      staffCount: rosterStaff.length,
     });
 
     if (!lock.ok) {
       return NextResponse.json(
         {
           error:
-            "El PDF se generó, pero no se pudo cerrar la categoría: " + lock.error,
+            "El PDF ya salió al mail, pero no se pudo cerrar la categoría: " + lock.error,
         },
         { status: 500 },
       );
     }
 
-    if (result) {
-      return NextResponse.json({
-        ok: true,
-        locked: true,
-        to: COORDINATOR_EMAIL,
-        players: players.length,
-        staff: staff?.length ?? 0,
-        provider: result.provider,
-      });
-    }
-
     return NextResponse.json({
       ok: true,
       locked: true,
-      needsClientSend: true,
       to: COORDINATOR_EMAIL,
-      players: players.length,
-      staff: staff?.length ?? 0,
-      subject,
-      text: emailText,
-      filename,
-      pdfBase64: Buffer.from(pdfBytes).toString("base64"),
+      players: rosterPlayers.length,
+      staff: rosterStaff.length,
+      provider: result.provider,
     });
   } catch (err) {
     return NextResponse.json(

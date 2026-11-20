@@ -1,5 +1,8 @@
-import { AccreditationPanel } from "@/components/accreditation-panel";
+import { redirect } from "next/navigation";
 
-export default function AcreditarPage({ params }: { params: { token: string } }) {
-  return <AccreditationPanel token={params.token} />;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default function AcreditarRedirectPage({ params }: { params: { token: string } }) {
+  redirect(`/plantel/${params.token}`);
 }

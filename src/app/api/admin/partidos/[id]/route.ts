@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/admin-auth";
 import { combineKickoff } from "@/lib/kickoff";
+import { syncKnockouts } from "@/lib/knockout-sync";
+import { joinRoundAndPens, resolveKnockoutPenalties, splitRoundAndPens } from "@/lib/penalties";
 import { revalidateTournamentPages, resolveMatchStatus } from "@/lib/revalidate-tournament";
 
 type RouteContext = { params: { id: string } };
@@ -16,7 +18,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   const { data: current, error: fetchError } = await supabase
     .from("matches")
-    .select("home_score, away_score, status")
+    .select("home_score, away_score, status, category, year_label, phase, round_label")
     .eq("id", params.id)
     .single();
 
@@ -27,7 +29,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   if (body.category) updates.category = body.category;
   if (body.yearLabel) updates.year_label = body.yearLabel;
   if (body.phase) updates.phase = body.phase;
-  if ("roundLabel" in body) updates.round_label = body.roundLabel || null;
   if (body.homeTeamId) updates.home_team_id = body.homeTeamId;
   if (body.awayTeamId) updates.away_team_id = body.awayTeamId;
   if (body.court) updates.court = body.court;
@@ -39,6 +40,20 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   const homeScore = "homeScore" in body ? body.homeScore : current.home_score;
   const awayScore = "awayScore" in body ? body.awayScore : current.away_score;
+  const phase = String(body.phase ?? current.phase);
+  const currentPens = splitRoundAndPens(current.round_label);
+  const nextRound = "roundLabel" in body ? body.roundLabel : currentPens.roundLabel;
+  const pens = resolveKnockoutPenalties({
+    phase,
+    homeScore,
+    awayScore,
+    homePenalties: "homePenalties" in body ? body.homePenalties : currentPens.homePenalties,
+    awayPenalties: "awayPenalties" in body ? body.awayPenalties : currentPens.awayPenalties,
+  });
+  if (!pens.ok) {
+    return NextResponse.json({ error: pens.error }, { status: 400 });
+  }
+  updates.round_label = joinRoundAndPens(nextRound, pens.homePenalties, pens.awayPenalties);
   const nextStatus = resolveMatchStatus(
     body.status ?? current.status,
     homeScore,
@@ -51,9 +66,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const category = String(updates.category ?? current.category);
+  const yearLabel = String(updates.year_label ?? current.year_label);
+  const knockout = await syncKnockouts(category, yearLabel);
+
   revalidateTournamentPages();
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, knockout });
 }
 
 export async function DELETE(_request: Request, { params }: RouteContext) {

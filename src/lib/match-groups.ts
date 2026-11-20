@@ -2,6 +2,7 @@ import type { Match } from "@/lib/types";
 
 /** Extrae letra de grupo: prioriza round_label ("Grupo A · …"), luego equipos. */
 export function resolveMatchGroup(match: Match): string | null {
+  if (/interzonal/i.test(match.roundLabel ?? "")) return "Interzonal";
   const fromLabel = match.roundLabel?.match(/grupo\s*([a-z0-9]+)/i)?.[1];
   if (fromLabel) return fromLabel.toUpperCase();
 

@@ -67,12 +67,14 @@ export async function POST(
     return NextResponse.json({ error: "Elegí un número de camiseta del 1 al 99" }, { status: 400 });
   }
 
-  const { count } = await supabase
+  const { data: existingPlayers, error: existingError } = await supabase
     .from("accreditation_players")
-    .select("*", { count: "exact", head: true })
+    .select("id")
     .eq("team_id", teamId);
-
-  if ((count ?? 0) >= MAX_PLAYERS_PER_CATEGORY) {
+  if (existingError) {
+    return NextResponse.json({ error: existingError.message }, { status: 500 });
+  }
+  if ((existingPlayers?.length ?? 0) >= MAX_PLAYERS_PER_CATEGORY) {
     return NextResponse.json(
       { error: `Ya están ${MAX_PLAYERS_PER_CATEGORY} jugadores en esta categoría` },
       { status: 400 },

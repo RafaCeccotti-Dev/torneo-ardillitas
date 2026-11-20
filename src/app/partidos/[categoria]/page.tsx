@@ -36,7 +36,11 @@ export default async function PartidosCategoriaPage({ params }: PartidosCategori
     <PageBackground imageKey="partidos" className="min-h-[40vh]">
       <ContentSection
         title={category.title}
-        description="Elegí la categoría de nacimiento para ver solo esos partidos."
+        description={
+          categoria === "femenino"
+            ? "Elegí la categoría de nacimiento para ver el fixture."
+            : "Elegí la categoría de nacimiento para ver solo esos partidos."
+        }
       >
         <Link
           href="/partidos"
@@ -47,6 +51,7 @@ export default async function PartidosCategoriaPage({ params }: PartidosCategori
 
         <YearCategoryPicker
           basePath={`/partidos/${categoria}`}
+          category={categoria}
           years={years}
           yearsWithContent={yearsWithMatches}
         />

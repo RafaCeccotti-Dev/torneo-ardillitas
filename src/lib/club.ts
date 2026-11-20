@@ -18,8 +18,17 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+/** Mismo club, distinto nombre en el fixture (femenino vs masculino). */
+const CLUB_SLUG_ALIASES: Record<string, string> = {
+  "central-argentino-olimpico": "central-ceres",
+  "club-central-argentino-olimpico": "central-ceres",
+  "central-argentino": "central-ceres",
+  ccao: "central-ceres",
+};
+
 export function clubSlug(team: Pick<Team, "name">) {
-  return slugify(clubDisplayName(team.name));
+  const slug = slugify(clubDisplayName(team.name));
+  return CLUB_SLUG_ALIASES[slug] ?? slug;
 }
 
 export function teamsForClub(teams: Team[], slug: string) {

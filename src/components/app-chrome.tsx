@@ -7,7 +7,7 @@ import { WhatsAppFloat } from "@/components/whatsapp-float";
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const bare = pathname.startsWith("/acreditar");
+  const bare = pathname.startsWith("/acreditar") || pathname.startsWith("/plantel");
 
   if (bare) {
     return <main className="min-h-screen bg-black">{children}</main>;

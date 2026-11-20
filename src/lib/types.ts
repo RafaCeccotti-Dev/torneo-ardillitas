@@ -22,6 +22,8 @@ export type Match = {
   awayTeam: Team;
   homeScore?: number | null;
   awayScore?: number | null;
+  homePenalties?: number | null;
+  awayPenalties?: number | null;
   kickoffAt: string;
   court: string;
   status: "programado" | "en_juego" | "finalizado";

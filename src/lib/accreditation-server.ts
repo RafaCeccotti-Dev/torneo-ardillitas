@@ -289,8 +289,7 @@ export async function loadAccreditationPayload(
           supabase
             .from("accreditation_players")
             .select("id, team_id, first_name, last_name, dni, birth_date, jersey_number")
-            .eq("team_id", id)
-            .order("jersey_number", { ascending: true }),
+            .eq("team_id", id),
         ),
       )
     : [];

@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 
 import { deleteAutoCreatedPortals, isMissingRelation } from "@/lib/accreditation-server";
 import { requireAdmin } from "@/lib/admin-auth";
+import { isProductionLocked } from "@/lib/production-lock";
 import { createServiceClient, hasServiceRole } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ const HEALTH_TOKEN = "ardillitas-acred-health-2026";
 
 async function authorize(request: Request) {
   const token = new URL(request.url).searchParams.get("token");
-  if (token === HEALTH_TOKEN) {
+  if (!isProductionLocked() && token === HEALTH_TOKEN) {
     if (!hasServiceRole()) {
       return {
         error: NextResponse.json({ error: "Falta SUPABASE_SERVICE_ROLE_KEY" }, { status: 503 }),

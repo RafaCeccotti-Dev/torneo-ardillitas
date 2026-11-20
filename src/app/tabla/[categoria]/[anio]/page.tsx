@@ -6,10 +6,19 @@ import { PageBackground } from "@/components/page-background";
 import { StandingsTable } from "@/components/standings-table";
 import { getStandingsForCategory } from "@/lib/content";
 import {
+  computeGeneralStandings,
+  crucesQualificationNotes,
+  isGeneralTable,
+  sortGroupNames,
+} from "@/lib/standings";
+import { femaleFormatNotes } from "@/data/official-fixtures-femenino";
+import {
   isTournamentCategorySlug,
   resolveYearLabel,
   standingsConfig,
   tournamentCategories,
+  yearConfig,
+  yearDisplayName,
   yearLabelToSlug,
 } from "@/lib/tournament-categories";
 
@@ -42,18 +51,24 @@ export default async function TablaAnioPage({ params }: TablaAnioPageProps) {
   }
 
   const yearStandings = standings[yearLabel] ?? {};
-  const groupsByConfig =
-    standingsConfig[categoria].find((item) => item.label === yearLabel)?.groups ??
-    Object.keys(yearStandings);
-  const groups = Array.from(
-    new Set([...groupsByConfig, ...Object.keys(yearStandings)]),
-  ).sort();
+  const config = yearConfig(categoria, yearLabel);
+  const groupsByConfig = config?.groups ?? Object.keys(yearStandings);
+  const singleTable = Boolean(config?.singleTable);
+  const displayTitle = yearDisplayName(categoria, yearLabel);
+  const formatNote =
+    categoria === "femenino" ? femaleFormatNotes[yearLabel] : undefined;
+  const groups = sortGroupNames(
+    Array.from(new Set([...groupsByConfig, ...Object.keys(yearStandings)])).filter(
+      (group) => !isGeneralTable(group),
+    ),
+  );
+  const generalRows = computeGeneralStandings(yearStandings);
   const hasRows = groups.some((group) => (yearStandings[group] ?? []).length > 0);
 
   return (
     <PageBackground imageKey="hero" className="min-h-[40vh]">
       <ContentSection
-        title={`Categoría ${yearLabel}`}
+        title={`Categoría ${displayTitle}`}
         description={`${category.title} · tabla de posiciones.`}
       >
         <Link
@@ -78,9 +93,33 @@ export default async function TablaAnioPage({ params }: TablaAnioPageProps) {
               <StandingsTable
                 key={`${yearLabel}-${group}`}
                 group={group}
+                heading={singleTable || groups.length === 1 ? "Tabla general" : undefined}
                 rows={yearStandings[group] ?? []}
+                note={
+                  groups.length === 1
+                    ? formatNote ??
+                      crucesQualificationNotes[`${categoria}:${yearLabel}`] ??
+                      crucesQualificationNotes[yearLabel]
+                    : undefined
+                }
+                showRank={singleTable || groups.length === 1}
               />
             ))}
+            {generalRows.length > 1 && groups.length > 1 ? (
+              <StandingsTable
+                key={`${yearLabel}-general`}
+                group="PEND"
+                heading="Tabla general"
+                note={
+                  crucesQualificationNotes[`${categoria}:${yearLabel}`] ??
+                  crucesQualificationNotes[yearLabel] ??
+                  "Todas las posiciones de la categoría, para ver terceros y cómo entran a los cruces."
+                }
+                rows={generalRows}
+                showRank
+                showGroup
+              />
+            ) : null}
           </div>
         )}
       </ContentSection>

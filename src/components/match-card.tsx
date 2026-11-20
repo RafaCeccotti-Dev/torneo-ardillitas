@@ -1,8 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 
+import { TeamCrest } from "@/components/team-crest";
 import { clubSlug } from "@/lib/club";
 import { formatKickoff } from "@/lib/kickoff";
+import { isPlaceholderTeamName } from "@/lib/knockout";
 import type { Match, Team } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -13,34 +14,37 @@ function TeamBadge({
   team: Team;
   compact?: boolean;
 }) {
+  const placeholder = isPlaceholderTeamName(team.name);
+  const body = (
+    <>
+      <TeamCrest src={placeholder ? null : team.logoUrl} name={team.name} size={compact ? "table" : "match"} />
+      <span
+        className={cn(
+          "line-clamp-2 text-xs font-medium leading-snug sm:text-sm",
+          placeholder
+            ? "max-w-[8.5rem] text-yellow-200 sm:max-w-[10rem]"
+            : "max-w-[7.5rem] text-white underline-offset-2 hover:text-yellow-400 hover:underline sm:max-w-[9rem]",
+        )}
+      >
+        {team.name}
+      </span>
+    </>
+  );
+
+  if (placeholder) {
+    return (
+      <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center sm:gap-2">
+        {body}
+      </div>
+    );
+  }
+
   return (
     <Link
       href={`/equipos/${clubSlug(team)}`}
       className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center transition hover:opacity-90 sm:gap-2"
     >
-      <div
-        className={cn(
-          "flex items-center justify-center overflow-hidden rounded-full border border-yellow-400/30 bg-black/40",
-          compact ? "h-11 w-11 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14",
-        )}
-      >
-        {team.logoUrl ? (
-          <Image
-            src={team.logoUrl}
-            alt={team.name}
-            width={56}
-            height={56}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="text-sm font-bold text-yellow-400 sm:text-lg">
-            {team.name.slice(0, 2).toUpperCase()}
-          </span>
-        )}
-      </div>
-      <span className="line-clamp-2 max-w-[7.5rem] text-xs font-medium leading-snug text-white underline-offset-2 hover:text-yellow-400 hover:underline sm:max-w-[9rem] sm:text-sm">
-        {team.name}
-      </span>
+      {body}
     </Link>
   );
 }
@@ -92,11 +96,18 @@ export function MatchCard({
         <TeamBadge team={match.homeTeam} compact={compactGroup} />
         <div className="shrink-0 px-1 text-center">
           {hasScore ? (
-            <p className="text-2xl font-black tabular-nums text-white sm:text-3xl">
-              {match.homeScore}
-              <span className="mx-1 text-white/40">-</span>
-              {match.awayScore}
-            </p>
+            <>
+              <p className="text-2xl font-black tabular-nums text-white sm:text-3xl">
+                {match.homeScore}
+                <span className="mx-1 text-white/40">-</span>
+                {match.awayScore}
+              </p>
+              {match.homePenalties != null && match.awayPenalties != null ? (
+                <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-yellow-300 sm:text-xs">
+                  {match.homePenalties}-{match.awayPenalties} pen.
+                </p>
+              ) : null}
+            </>
           ) : (
             <p className="text-xl font-bold text-white/80 sm:text-2xl">VS</p>
           )}

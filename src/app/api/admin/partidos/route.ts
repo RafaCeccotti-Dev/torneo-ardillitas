@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/admin-auth";
 import { combineKickoff } from "@/lib/kickoff";
+import { syncKnockouts } from "@/lib/knockout-sync";
+import { joinRoundAndPens, resolveKnockoutPenalties } from "@/lib/penalties";
 import { revalidateTournamentPages, resolveMatchStatus } from "@/lib/revalidate-tournament";
 
 export async function GET() {
@@ -57,6 +59,8 @@ export async function POST(request: Request) {
     status = "programado",
     homeScore = null,
     awayScore = null,
+    homePenalties = null,
+    awayPenalties = null,
   } = body;
 
   if (!category || !yearLabel || !phase || !homeTeamId || !awayTeamId || !kickoffDate || !kickoffTime || !court) {
@@ -67,6 +71,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Los equipos deben ser distintos" }, { status: 400 });
   }
 
+  const pens = resolveKnockoutPenalties({
+    phase,
+    homeScore,
+    awayScore,
+    homePenalties,
+    awayPenalties,
+  });
+  if (!pens.ok) {
+    return NextResponse.json({ error: pens.error }, { status: 400 });
+  }
+
   const resolvedStatus = resolveMatchStatus(status, homeScore, awayScore);
 
   const { data, error } = await supabase
@@ -75,7 +90,7 @@ export async function POST(request: Request) {
       category,
       year_label: yearLabel,
       phase,
-      round_label: roundLabel || null,
+      round_label: joinRoundAndPens(roundLabel, pens.homePenalties, pens.awayPenalties),
       home_team_id: homeTeamId,
       away_team_id: awayTeamId,
       home_score: homeScore,
@@ -91,9 +106,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const knockout = await syncKnockouts(category, yearLabel);
   revalidateTournamentPages();
 
-  return NextResponse.json({ ok: true, id: data.id });
+  return NextResponse.json({ ok: true, id: data.id, knockout });
 }
 
 export async function DELETE() {

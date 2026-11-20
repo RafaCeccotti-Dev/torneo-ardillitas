@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { standingsConfig, tournamentCategories } from "@/lib/tournament-categories";
 import { formatKickoff, splitKickoff } from "@/lib/kickoff";
+import { splitRoundAndPens } from "@/lib/penalties";
 
 type TeamRow = {
   id: string;
@@ -49,6 +50,8 @@ const emptyForm = {
   status: "programado" as "programado" | "en_juego" | "finalizado",
   homeScore: "",
   awayScore: "",
+  homePenalties: "",
+  awayPenalties: "",
 };
 
 export function PartidosManager() {
@@ -101,12 +104,13 @@ export function PartidosManager() {
 
   function startEdit(match: MatchRow) {
     const { kickoffDate, kickoffTime } = splitKickoff(match.kickoff_at);
+    const pens = splitRoundAndPens(match.round_label);
     setEditingId(match.id);
     setForm({
       category: match.category,
       yearLabel: match.year_label,
       phase: match.phase,
-      roundLabel: match.round_label ?? "",
+      roundLabel: pens.roundLabel ?? "",
       homeTeamId: match.home_team_id,
       awayTeamId: match.away_team_id,
       kickoffDate,
@@ -115,6 +119,8 @@ export function PartidosManager() {
       status: match.status,
       homeScore: match.home_score?.toString() ?? "",
       awayScore: match.away_score?.toString() ?? "",
+      homePenalties: pens.homePenalties?.toString() ?? "",
+      awayPenalties: pens.awayPenalties?.toString() ?? "",
     });
   }
 
@@ -137,6 +143,8 @@ export function PartidosManager() {
         form.homeScore !== "" && form.awayScore !== "" ? "finalizado" : form.status,
       homeScore: form.homeScore === "" ? null : Number(form.homeScore),
       awayScore: form.awayScore === "" ? null : Number(form.awayScore),
+      homePenalties: form.homePenalties === "" ? null : Number(form.homePenalties),
+      awayPenalties: form.awayPenalties === "" ? null : Number(form.awayPenalties),
     };
 
     try {
@@ -187,6 +195,7 @@ export function PartidosManager() {
 
         <p className="mt-2 text-sm text-white/60">
           Si cargás goles de ambos equipos, el partido pasa a finalizado y la tabla se actualiza sola.
+          En cruces, si empatan aparecen los penales: sin ganador de penales el cruce no avanza.
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -349,7 +358,22 @@ export function PartidosManager() {
               type="number"
               min="0"
               value={form.homeScore}
-              onChange={(event) => setForm((current) => ({ ...current, homeScore: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => {
+                  const homeScore = event.target.value;
+                  const draw =
+                    current.phase === "cruces" &&
+                    homeScore !== "" &&
+                    current.awayScore !== "" &&
+                    homeScore === current.awayScore;
+                  return {
+                    ...current,
+                    homeScore,
+                    homePenalties: draw ? current.homePenalties : "",
+                    awayPenalties: draw ? current.awayPenalties : "",
+                  };
+                })
+              }
               className="mt-1 w-full rounded-xl border border-white/15 bg-black px-3 py-2 text-white"
             />
           </label>
@@ -360,10 +384,62 @@ export function PartidosManager() {
               type="number"
               min="0"
               value={form.awayScore}
-              onChange={(event) => setForm((current) => ({ ...current, awayScore: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => {
+                  const awayScore = event.target.value;
+                  const draw =
+                    current.phase === "cruces" &&
+                    current.homeScore !== "" &&
+                    awayScore !== "" &&
+                    current.homeScore === awayScore;
+                  return {
+                    ...current,
+                    awayScore,
+                    homePenalties: draw ? current.homePenalties : "",
+                    awayPenalties: draw ? current.awayPenalties : "",
+                  };
+                })
+              }
               className="mt-1 w-full rounded-xl border border-white/15 bg-black px-3 py-2 text-white"
             />
           </label>
+
+          {form.phase === "cruces" &&
+          form.homeScore !== "" &&
+          form.awayScore !== "" &&
+          form.homeScore === form.awayScore ? (
+            <>
+              <label className="block text-sm text-yellow-200">
+                Penales local
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  value={form.homePenalties}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, homePenalties: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-yellow-400/40 bg-black px-3 py-2 text-white"
+                />
+              </label>
+              <label className="block text-sm text-yellow-200">
+                Penales visitante
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  value={form.awayPenalties}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, awayPenalties: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-yellow-400/40 bg-black px-3 py-2 text-white"
+                />
+              </label>
+              <p className="md:col-span-2 text-sm text-yellow-200/80">
+                Empate en cruces: masculino serie de 5, femenino serie de 3. Tiene que haber un ganador.
+              </p>
+            </>
+          ) : null}
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -418,6 +494,11 @@ export function PartidosManager() {
                       {match.status === "finalizado" ? (
                         <p className="mt-1 text-sm font-medium text-yellow-300">
                           Resultado: {match.home_score ?? 0} - {match.away_score ?? 0}
+                          {(() => {
+                            const pens = splitRoundAndPens(match.round_label);
+                            if (pens.homePenalties == null || pens.awayPenalties == null) return null;
+                            return `  ·  pen. ${pens.homePenalties}-${pens.awayPenalties}`;
+                          })()}
                         </p>
                       ) : null}
                     </div>

@@ -3,6 +3,12 @@
  * Fechas del torneo: 21 (sábado), 22 (domingo) y 23 (lunes) de noviembre 2026.
  */
 
+import {
+  oroAfterCuartos,
+  plataAfterCuartos,
+  plataFinalOnly,
+} from "@/data/masculine-knockout-tree";
+
 export type OfficialGroupMatch = {
   home: string;
   away: string;
@@ -72,7 +78,7 @@ export const officialFixtures: OfficialYearFixture[] = [
     groupMatches: [
       { home: 'CCAO "Negro"', away: "Union Hersilia", day: SAT, time: "09:20", court: 1, group: "C" },
       { home: "B. 9 de Julio Ceres", away: 'CACU "Azul"', day: SAT, time: "10:00", court: 1, group: "B" },
-      { home: "9 de Julio Raf", away: 'CACU "Rojo"', day: SAT, time: "10:40", court: 1, group: "C" },
+      { home: "9 de Julio Raf", away: 'CACU "Rojo"', day: SUN, time: "08:00", court: 1, group: "C" },
       { home: "A.D. Malbran", away: 'CCAO "Amarillo"', day: SAT, time: "10:40", court: 6, group: "A" },
       { home: "Union Hersilia", away: 'CACU "Rojo"', day: SAT, time: "12:00", court: 6, group: "C" },
       { home: 'CCAO "Negro"', away: "9 de Julio Raf", day: SAT, time: "18:40", court: 1, group: "C" },
@@ -95,10 +101,12 @@ export const officialFixtures: OfficialYearFixture[] = [
       { roundLabel: "Copa de Oro · Cuartos · 2° mejor 1° vs 2° mejor 3°", homeSlot: "2° mejor 1°", awaySlot: "2° mejor 3°", time: "09:40", court: 2 },
       { roundLabel: "Copa de Oro · Cuartos · Peor 1° vs Peor 2°", homeSlot: "Peor 1°", awaySlot: "Peor 2°", time: "10:20", court: 3 },
       { roundLabel: "Copa de Oro · Cuartos · 2° restantes", homeSlot: "Mejor 2°", awaySlot: "2° mejor 2°", time: "11:00", court: 4 },
+      ...oroAfterCuartos,
     ],
     plata: [
       { roundLabel: "Copa de Plata · Semis · 3° restante vs 4° A", homeSlot: "3° restante", awaySlot: "4° Grupo A", time: "15:00", court: 1 },
       { roundLabel: "Copa de Plata · Semis · 4° B vs 4° C", homeSlot: "4° Grupo B", awaySlot: "4° Grupo C", time: "15:40", court: 2 },
+      ...plataFinalOnly,
     ],
   },
   {
@@ -162,13 +170,13 @@ export const officialFixtures: OfficialYearFixture[] = [
       { home: "Las Palmeras", away: "SL Tostado", day: SAT, time: "08:00", court: 2, group: "C" },
       { home: "Argentinos Jrs", away: "9 de Julio Rafaela", day: SAT, time: "08:40", court: 4, group: "B" },
       { home: "Las Palmeras", away: "Leones Selvenses", day: SAT, time: "09:20", court: 4, group: "C" },
-      { home: "SL Tostado", away: "Mascotas Tostado", day: SAT, time: "10:00", court: 2, group: "C" },
+      { home: "SL Tostado", away: "Mascotas Tostado", day: SAT, time: "20:00", court: 4, group: "C" },
       { home: "Las Palmeras", away: "CCAO", day: SAT, time: "10:40", court: 2, group: "C" },
       { home: "Las Palmeras", away: "Mascotas Tostado", day: SAT, time: "12:00", court: 4, group: "C" },
       { home: "Leones Selvenses", away: "SL Tostado", day: SAT, time: "18:00", court: 2, group: "C" },
       { home: "Argentinos Jrs", away: "Atletico Selva", day: SAT, time: "18:00", court: 4, group: "B" },
       { home: "CACU", away: "9 de Julio Rafaela", day: SAT, time: "19:20", court: 2, group: "B" },
-      { home: "CCAO", away: "SL Tostado", day: SAT, time: "20:00", court: 4, group: "C" },
+      { home: "CCAO", away: "SL Tostado", day: SAT, time: "12:00", court: 1, group: "C" },
       { home: "CACU", away: "Atletico Selva", day: SAT, time: "22:00", court: 4, group: "B" },
       { home: "Cultural La Para", away: "Mitre Esperanza", day: SUN, time: "08:00", court: 2, group: "A" },
       { home: "Velez Sarsfield", away: 'SP Norte Raf "Blanco"', day: SUN, time: "08:00", court: 4, group: "A" },
@@ -195,12 +203,14 @@ export const officialFixtures: OfficialYearFixture[] = [
       { roundLabel: "Copa de Oro · Cuartos · 2° mejor 1° vs 2° mejor 3°", homeSlot: "2° mejor 1°", awaySlot: "2° mejor 3°", time: "09:40", court: 2 },
       { roundLabel: "Copa de Oro · Cuartos · Peor 1° vs Peor 2°", homeSlot: "Peor 1°", awaySlot: "Peor 2°", time: "10:20", court: 3 },
       { roundLabel: "Copa de Oro · Cuartos · 2° restantes", homeSlot: "Mejor 2°", awaySlot: "2° mejor 2°", time: "11:00", court: 4 },
+      ...oroAfterCuartos,
     ],
     plata: [
       { roundLabel: "Copa de Plata · Cuartos · 3° restante vs 4° A", homeSlot: "3° restante", awaySlot: "4° Grupo A", time: "15:00", court: 1 },
       { roundLabel: "Copa de Plata · Cuartos · 4° B vs 5° A", homeSlot: "4° Grupo B", awaySlot: "5° Grupo A", time: "15:40", court: 2 },
       { roundLabel: "Copa de Plata · Cuartos · 4° C vs 5° B", homeSlot: "4° Grupo C", awaySlot: "5° Grupo B", time: "16:20", court: 3 },
       { roundLabel: "Copa de Plata · Cuartos · 5° C vs Mejor perdedor Oro", homeSlot: "5° Grupo C", awaySlot: "Mejor perdedor 1er cruce Oro", time: "17:00", court: 4 },
+      ...plataAfterCuartos,
     ],
   },
   {
@@ -263,7 +273,7 @@ export const officialFixtures: OfficialYearFixture[] = [
       { home: "Esc. Raul Toloza", away: 'CCAO "Negro"', day: SUN, time: "19:20", court: 2, group: "A" },
       { home: "Ben Hur Rafaela", away: "CACU", day: SUN, time: "21:20", court: 2, group: "C" },
       { home: "Rosario Central", away: "B. 9 de Julio Ceres", day: SUN, time: "21:20", court: 4, group: "B" },
-      { home: "Atletico Selva", away: "Lanus", day: SUN, time: "22:40", court: 2, group: "D" },
+      { home: "Atletico Selva", away: "Lanus", day: SUN, time: "18:40", court: 1, group: "D" },
       { home: "Libertad Sunchales", away: "Atletico Rafaela", day: SUN, time: "22:40", court: 4, group: "C" },
     ],
     // 4 grupos: 1A vs 2B, 1B vs 2A, 1C vs 2D, 1D vs 2C
@@ -272,12 +282,14 @@ export const officialFixtures: OfficialYearFixture[] = [
       { roundLabel: "Copa de Oro · Cuartos · 1°B vs 2°A", homeSlot: "1° Grupo B", awaySlot: "2° Grupo A", time: "09:40", court: 2 },
       { roundLabel: "Copa de Oro · Cuartos · 1°C vs 2°D", homeSlot: "1° Grupo C", awaySlot: "2° Grupo D", time: "10:20", court: 3 },
       { roundLabel: "Copa de Oro · Cuartos · 1°D vs 2°C", homeSlot: "1° Grupo D", awaySlot: "2° Grupo C", time: "11:00", court: 4 },
+      ...oroAfterCuartos,
     ],
     plata: [
       { roundLabel: "Copa de Plata · Cuartos · 3°A vs 4°B", homeSlot: "3° Grupo A", awaySlot: "4° Grupo B", time: "15:00", court: 1 },
       { roundLabel: "Copa de Plata · Cuartos · 3°B vs 4°A", homeSlot: "3° Grupo B", awaySlot: "4° Grupo A", time: "15:40", court: 2 },
       { roundLabel: "Copa de Plata · Cuartos · 3°C vs 4°D", homeSlot: "3° Grupo C", awaySlot: "4° Grupo D", time: "16:20", court: 3 },
       { roundLabel: "Copa de Plata · Cuartos · 3°D vs 4°C", homeSlot: "3° Grupo D", awaySlot: "4° Grupo C", time: "17:00", court: 4 },
+      ...plataAfterCuartos,
     ],
   },
 ];

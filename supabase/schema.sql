@@ -38,6 +38,8 @@ create table if not exists matches (
   away_team_id uuid not null references teams(id) on delete restrict,
   home_score int,
   away_score int,
+  -- Los penales de cruces se guardan también en round_label (" · pen. 5-4")
+  -- para no depender de un ALTER en producción.
   kickoff_at timestamptz not null,
   court text not null default 'Cancha 1',
   status text not null default 'programado' check (status in ('programado', 'en_juego', 'finalizado')),

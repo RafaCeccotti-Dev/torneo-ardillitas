@@ -134,6 +134,12 @@ Los equipos participantes deberán presentarse con sus correspondientes camiseta
 RECORDAR TRAER CALZADO F5 O ZAPATILLAS PARA PODER JUGAR DENTRO DE LAS CANCHAS DE FÚTBOL 5. PROHIBIDO EL USO DE BOTINES CON TAPONES ALTOS.`,
       },
       {
+        title: "Formas de juego",
+        body: `• CAT. SUB 13: 4 equipos. Todos contra todos. La clasificación es por tabla general. Semifinales: 1° vs 4° y 2° vs 3°. Los ganadores van a la final.
+
+• CAT. SUB 15: 7 equipos. Primera fase sin zonas de grupos: cada equipo juega 4 partidos y no puede repetir rival. La clasificación es por tabla general. Quien termine 1° pasa directo a semifinales. Cuartos de final: 2° vs 7°, 3° vs 6° y 4° vs 5°. Semifinales: 1° vs el 4° peor clasificado, y el 2° mejor vs el 3° peor. Los ganadores van a la final.`,
+      },
+      {
         title: "Aclaraciones",
         body: `• Una misma jugadora solo podrá integrar una lista de buena fe, es decir, que no podrá integrar otro equipo ya sea de la misma o distinta categoría y tampoco podrá participar para 2 clubes distintos. En caso de que suceda algún acto de estos habrá sanciones que decidirá la coordinación del torneo.
 

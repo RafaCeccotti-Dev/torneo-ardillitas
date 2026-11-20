@@ -4,8 +4,8 @@ import { Users } from "lucide-react";
 import { tournamentCategories } from "@/lib/tournament-categories";
 
 type TournamentCategoryPickerProps = {
-  /** Ruta base: /tabla o /partidos */
-  basePath?: "/tabla" | "/partidos";
+  /** Ruta base: /tabla, /partidos o /reglamento */
+  basePath?: "/tabla" | "/partidos" | "/reglamento";
   /** Texto del CTA en cada tarjeta */
   ctaLabel?: string;
 };
@@ -18,12 +18,17 @@ export function TournamentCategoryPicker({
     basePath === "/partidos"
       ? {
           masculino: "Fixture por categoría de nacimiento: grupos y cruces.",
-          femenino: "Fixture por categoría de nacimiento: grupos y cruces.",
+          femenino: "Fixture 2011 y 2013: grupos, fase inicial y cruces.",
         }
-      : {
-          masculino: "Tablas por categoría de nacimiento y grupos del torneo.",
-          femenino: "Tablas por categoría de nacimiento y grupos del torneo.",
-        };
+      : basePath === "/reglamento"
+        ? {
+            masculino: "Reglamento oficial Ardillitas 2026, con PDF para descargar.",
+            femenino: "Reglamento oficial Ardillitas 2026, con PDF para descargar.",
+          }
+        : {
+            masculino: "Tablas por categoría de nacimiento y grupos del torneo.",
+            femenino: "Tablas 2011 (grupos A/B) y 2013 (general), y cómo se clasifica a los cruces.",
+          };
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -6,6 +5,7 @@ import { ContentSection } from "@/components/content-section";
 import { MatchesList } from "@/components/matches-list";
 import { PageBackground } from "@/components/page-background";
 import { StandingsTable } from "@/components/standings-table";
+import { TeamCrest } from "@/components/team-crest";
 import { clubDisplayName, teamsForClub } from "@/lib/club";
 import { getMatches, getTeams } from "@/lib/content";
 import { computeStandingsByGroup, groupHeading } from "@/lib/standings";
@@ -74,13 +74,7 @@ export default async function EquipoPage({ params }: EquipoPageProps) {
         }
       >
         <div className="mb-8 flex flex-wrap items-center gap-4">
-          <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-yellow-400/30 bg-black/50">
-            {logoUrl ? (
-              <Image src={logoUrl} alt="" fill className="object-cover" sizes="64px" />
-            ) : (
-              <span className="text-xl font-bold text-yellow-400">{title.slice(0, 2)}</span>
-            )}
-          </div>
+          <TeamCrest src={logoUrl} name={title} size="club" />
           <Link href="/partidos" className="text-sm font-medium text-yellow-400 hover:text-yellow-300">
             ← Volver a partidos
           </Link>

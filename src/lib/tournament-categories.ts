@@ -16,6 +16,10 @@ export type TournamentCategorySlug = (typeof tournamentCategories)[number]["slug
 export type YearStandingsConfig = {
   label: string;
   groups: string[];
+  /** Texto en el picker si no es el año a secas. */
+  displayName?: string;
+  /** Una sola tabla, sin zonas de grupos. */
+  singleTable?: boolean;
 };
 
 export const standingsConfig: Record<TournamentCategorySlug, YearStandingsConfig[]> = {
@@ -24,14 +28,21 @@ export const standingsConfig: Record<TournamentCategorySlug, YearStandingsConfig
     { label: "2016", groups: ["A", "B", "C"] },
     { label: "2017", groups: ["A", "B", "C", "D"] },
     { label: "2018", groups: ["A", "B", "C"] },
-    { label: "2019/2020", groups: ["A", "B", "C"] },
+    { label: "2019/2020", groups: ["A", "B", "C", "D"] },
   ],
   femenino: [
-    { label: "2011", groups: ["A", "B", "C"] },
-    { label: "2014", groups: ["A", "B", "C"] },
-    { label: "2016", groups: ["A", "B", "C"] },
+    { label: "2011", groups: ["A", "B"] },
+    { label: "2013", groups: ["A"], singleTable: true },
   ],
 };
+
+export function yearConfig(category: TournamentCategorySlug, label: string) {
+  return standingsConfig[category].find((item) => item.label === label);
+}
+
+export function yearDisplayName(category: TournamentCategorySlug, label: string) {
+  return yearConfig(category, label)?.displayName ?? label;
+}
 
 export function isTournamentCategorySlug(value: string): value is TournamentCategorySlug {
   return tournamentCategories.some((category) => category.slug === value);
@@ -48,6 +59,9 @@ export function resolveYearLabel(
   extraLabels: string[] = [],
 ): string | null {
   const decoded = decodeURIComponent(slugOrLabel);
+  if (category === "femenino" && (decoded === "2015" || decoded === "2015-sub-15")) {
+    return "2011";
+  }
   const known = [
     ...standingsConfig[category].map((item) => item.label),
     ...extraLabels,
@@ -61,7 +75,9 @@ export function listYearLabels(
   extraLabels: string[] = [],
 ): string[] {
   const fromConfig = standingsConfig[category].map((item) => item.label);
-  const extras = extraLabels.filter((label) => !fromConfig.includes(label));
+  const extras = extraLabels
+    .map((label) => (category === "femenino" && label === "2015" ? "2011" : label))
+    .filter((label) => !fromConfig.includes(label));
   return [...fromConfig, ...extras.sort()];
 }
 

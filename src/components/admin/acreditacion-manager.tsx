@@ -120,7 +120,7 @@ export function AcreditacionManager() {
   async function copyLink(portal: PortalRow) {
     const absolute = portal.url.startsWith("http")
       ? portal.url
-      : `${window.location.origin}/acreditar/${portal.token}`;
+      : `${window.location.origin}/plantel/${portal.token}`;
     await navigator.clipboard.writeText(absolute);
     setCopiedId(portal.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -219,7 +219,7 @@ export function AcreditacionManager() {
                     </p>
                     <p className="mt-2 break-all text-xs text-yellow-400/80">
                       {typeof window !== "undefined"
-                        ? `${window.location.origin}/acreditar/${portal.token}`
+                        ? `${window.location.origin}/plantel/${portal.token}`
                         : portal.url}
                     </p>
                   </div>

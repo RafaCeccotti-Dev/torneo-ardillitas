@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
+import {
+  yearDisplayName,
+  type TournamentCategorySlug,
+} from "@/lib/tournament-categories";
+
 type YearCategoryPickerProps = {
   basePath: string;
   years: string[];
+  category?: TournamentCategorySlug;
   /** Años que ya tienen contenido cargado */
   yearsWithContent?: string[];
 };
@@ -11,6 +17,7 @@ type YearCategoryPickerProps = {
 export function YearCategoryPicker({
   basePath,
   years,
+  category,
   yearsWithContent = years,
 }: YearCategoryPickerProps) {
   const contentSet = new Set(yearsWithContent);
@@ -20,6 +27,7 @@ export function YearCategoryPicker({
       {years.map((yearLabel) => {
         const slug = yearLabel.replace(/\//g, "-");
         const hasContent = contentSet.has(yearLabel);
+        const title = category ? yearDisplayName(category, yearLabel) : yearLabel;
         return (
           <Link
             key={yearLabel}
@@ -28,7 +36,7 @@ export function YearCategoryPicker({
           >
             <div>
               <p className="font-display text-lg font-bold uppercase tracking-wide text-white">
-                Categoría {yearLabel}
+                Categoría {title}
               </p>
               <p className="mt-1 text-sm text-white/60">
                 {hasContent ? "Ver detalle" : "Próximamente"}

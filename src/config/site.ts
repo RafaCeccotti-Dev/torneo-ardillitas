@@ -68,6 +68,8 @@ export const siteConfig = {
     handle: "torneoardillitas",
     url: "https://www.instagram.com/torneoardillitas/",
   },
+  /** Vacío hasta que pasen el Drive de fotos del torneo. */
+  drivePhotosUrl: "",
   /**
    * Auspiciantes fijos en código — no se editan desde el panel.
    * Los logos en /auspiciantes/norm son lienzos de 640x256 con el logo recortado y
@@ -90,6 +92,12 @@ export const siteConfig = {
       monochrome: true,
     },
     {
+      name: "Prodas",
+      logo: "/auspiciantes/norm/prodas.png",
+      href: "https://www.instagram.com/prodasagrocomercial/",
+      monochrome: true,
+    },
+    {
       name: "Calzados Frank",
       logo: "/auspiciantes/norm/calzados-frank.png",
       href: "https://www.instagram.com/calzados_frank/",
@@ -102,21 +110,90 @@ export const siteConfig = {
       monochrome: true,
     },
     {
-      name: "Vida Plus",
-      logo: "/auspiciantes/norm/vida-plus.png",
-      href: "https://www.instagram.com/detodounpoco.vp/",
+      name: "Frank Perfumería",
+      logo: "/auspiciantes/norm/frank-perfumeria.png",
       monochrome: true,
     },
     {
-      name: "Prodas",
-      logo: "/auspiciantes/norm/prodas.png",
-      href: "https://www.instagram.com/prodasagrocomercial/",
+      name: "Farmacia Hilbe",
+      logo: "/auspiciantes/norm/farmacia-hilbe.png",
       monochrome: true,
     },
     {
-      name: "Mundo Rodados",
-      logo: "/auspiciantes/norm/mundo-rodados.png",
-      href: "https://www.instagram.com/mundo.rodados/",
+      name: "Farmacia Albertinazzi",
+      logo: "/auspiciantes/norm/farmacia-albertinazzi.png",
+      monochrome: true,
+    },
+    {
+      name: "Kiosco Adonai",
+      logo: "/auspiciantes/norm/kiosco-adonai.png",
+      monochrome: true,
+    },
+    {
+      name: "Panificados El Messi",
+      logo: "/auspiciantes/norm/panificados-el-messi.png",
+      monochrome: true,
+    },
+    {
+      name: "Transporte Guille",
+      logo: "/auspiciantes/norm/transporte-guille.png",
+      monochrome: true,
+    },
+    {
+      name: "Aplicaciones Mario Piccoli",
+      logo: "/auspiciantes/norm/aplicaciones-mario-piccoli.png",
+      monochrome: true,
+    },
+    {
+      name: "More Indumentaria",
+      logo: "/auspiciantes/norm/moreind.png",
+      href: "https://www.instagram.com/moreind.ok/",
+      monochrome: true,
+    },
+    {
+      name: "Aceros Bimor",
+      logo: "/auspiciantes/norm/aceros-bimor.png",
+      href: "https://www.instagram.com/bimormetalurgica/",
+      monochrome: true,
+    },
+    {
+      name: "La Vanguardia · Leiva Hnos. SA",
+      logo: "/auspiciantes/norm/la-vanguardia.png",
+      monochrome: true,
+    },
+    {
+      name: "Piruetas",
+      logo: "/auspiciantes/norm/piruetas.png",
+      monochrome: true,
+    },
+    {
+      name: "Florecita",
+      logo: "/auspiciantes/norm/florecita.png",
+      monochrome: true,
+    },
+    {
+      name: "Forrajería San Lorenzo",
+      logo: "/auspiciantes/norm/san-lorenzo.png",
+      monochrome: true,
+    },
+    {
+      name: "Punto Mix",
+      logo: "/auspiciantes/norm/punto-mix.png",
+      monochrome: true,
+    },
+    {
+      name: "La Boutique del Cerdo",
+      logo: "/auspiciantes/norm/boutique-cerdo.png",
+      monochrome: true,
+    },
+    {
+      name: "Despensa San Lorenzo",
+      logo: "/auspiciantes/norm/despensa-san-lorenzo.png",
+      monochrome: true,
+    },
+    {
+      name: "Domo Electrónica",
+      logo: "/auspiciantes/norm/domo-electronica.png",
       monochrome: true,
     },
   ],

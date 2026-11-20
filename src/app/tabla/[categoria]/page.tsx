@@ -36,7 +36,11 @@ export default async function TablaCategoriaPage({ params }: TablaCategoriaPageP
     <PageBackground imageKey="hero" className="min-h-[40vh]">
       <ContentSection
         title={category.title}
-        description="Elegí la categoría de nacimiento para ver solo esa tabla."
+        description={
+          categoria === "femenino"
+            ? "Elegí la categoría de nacimiento para ver la tabla general."
+            : "Elegí la categoría de nacimiento para ver solo esa tabla."
+        }
       >
         <Link
           href="/tabla"
@@ -47,6 +51,7 @@ export default async function TablaCategoriaPage({ params }: TablaCategoriaPageP
 
         <YearCategoryPicker
           basePath={`/tabla/${categoria}`}
+          category={categoria}
           years={years}
           yearsWithContent={yearsWithTables}
         />

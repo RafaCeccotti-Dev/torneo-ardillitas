@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { TeamCrest } from "@/components/team-crest";
 import { standingsConfig, tournamentCategories } from "@/lib/tournament-categories";
 
 type TeamRow = {
@@ -508,21 +508,7 @@ function startEdit(team: TeamRow) {
                     className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full border border-yellow-400/30 bg-black/50">
-                        {team.logoUrl ? (
-                          <Image
-                            src={team.logoUrl}
-                            alt={team.name}
-                            fill
-                            className="object-cover"
-                            sizes="40px"
-                          />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-yellow-400">
-                            {team.name.slice(0, 2).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
+                      <TeamCrest src={team.logoUrl} name={team.name} size="admin" />
                       <span className="font-medium text-white">{team.name}</span>
                     </div>
                     <div className="flex gap-3 text-sm">

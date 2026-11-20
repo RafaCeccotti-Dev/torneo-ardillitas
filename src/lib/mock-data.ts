@@ -196,6 +196,6 @@ export const mockPlaces: CityPlace[] = [
   },
 ];
 
-export const clubMapImage = "/backgrounds/croquis-club.png";
-export const clubMapPdf = "/club/croquis-ccao.pdf";
+export const clubMapImage = "/backgrounds/croquis-club.png?v=20261118";
+export const clubMapPdf = "/club/croquis-ccao.pdf?v=20261118";
 

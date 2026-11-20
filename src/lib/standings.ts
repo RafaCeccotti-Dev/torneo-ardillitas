@@ -15,6 +15,41 @@ export function sortGroupNames(groups: string[]) {
   });
 }
 
+export function sortStandingRows(rows: StandingRow[]) {
+  return [...rows].sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    const diffA = a.goalsFor - a.goalsAgainst;
+    const diffB = b.goalsFor - b.goalsAgainst;
+    if (diffB !== diffA) return diffB - diffA;
+    if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+    return a.team.name.localeCompare(b.team.name, "es");
+  });
+}
+
+export function computeGeneralStandings(groups: Record<string, StandingRow[]>) {
+  return sortStandingRows(
+    Object.entries(groups)
+      .filter(([group]) => !isGeneralTable(group))
+      .flatMap(([, rows]) => rows),
+  );
+}
+
+export const crucesQualificationNotes: Record<string, string> = {
+  "2015":
+    "3 grupos. Copa de Oro: 1° y 2° de cada grupo más los dos mejores 3° (8 equipos: cuartos, semis y final). Copa de Plata: el 3° que queda y los tres 4° (4 equipos: semis y final).",
+  "2016":
+    "Copa de Oro: 1° y 2° de cada grupo más los dos mejores 3°. Copa de Plata: el 3° que queda, 4° y 5°.",
+  "2017": "Copa de Oro: 1° y 2° de cada grupo. Copa de Plata: 3° y 4° de cada grupo.",
+  "2018":
+    "Copa de Oro: 1° y 2° de cada grupo más los dos mejores 3°. Copa de Plata: el 3° que queda y los 4°.",
+  "2019/2020":
+    "Copa de Oro: del 1° al 8° de esta tabla. Copa de Plata: 11° vs 14° y 12° vs 13° (9° y 10° van a semis).",
+  "femenino:2013":
+    "Clasificación por esta tabla. Final de Oro: 1° vs 2°. Final de Plata: 3° vs 4°. El 5° queda eliminado.",
+  "femenino:2011":
+    "Clasificación por tabla general. Semis de Oro: 1° vs 4° y 2° vs 3°. Semis de Plata: 5° vs perdedor semi Oro 1, 6° vs perdedor semi Oro 2. Finales: ganador vs ganador.",
+};
+
 export function computeStandingsByGroup(teams: Team[], matches: Match[]) {
   const groups: Record<string, Map<string, StandingRow>> = {};
   const teamById = new Map(teams.map((team) => [team.id, team]));
@@ -70,13 +105,7 @@ export function computeStandingsByGroup(teams: Team[], matches: Match[]) {
 
   const result: Record<string, StandingRow[]> = {};
   for (const [group, rows] of Object.entries(groups)) {
-    result[group] = Array.from(rows.values()).sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      const diffA = a.goalsFor - a.goalsAgainst;
-      const diffB = b.goalsFor - b.goalsAgainst;
-      if (diffB !== diffA) return diffB - diffA;
-      return b.goalsFor - a.goalsFor;
-    });
+    result[group] = sortStandingRows(Array.from(rows.values()));
   }
 
   return result;

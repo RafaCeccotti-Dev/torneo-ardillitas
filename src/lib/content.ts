@@ -1,4 +1,7 @@
+import { clubSlug } from "@/lib/club";
 import type { GalleryPhoto, Match, Team } from "@/lib/types";
+import { isPlaceholderTeamName } from "@/lib/knockout";
+import { splitRoundAndPens } from "@/lib/penalties";
 import { computeStandingsByGroup } from "@/lib/standings";
 import type { StandingsByYear } from "@/lib/standings-data";
 import type { TournamentCategorySlug } from "@/lib/tournament-categories";
@@ -36,35 +39,74 @@ type MatchRow = {
   status: Match["status"];
 };
 
+function remapFemaleYear(category: string, yearLabel: string) {
+  return category === "femenino" && yearLabel === "2015" ? "2011" : yearLabel;
+}
+
+function stripFemaleSubLabel(value: string) {
+  return value.replace(/\s*Sub\s*1[35]\b/gi, "").replace(/\s{2,}/g, " ").trim();
+}
+
 function publicLogoUrl(logoPath: string | null | undefined): string | null {
   if (!logoPath || !isSupabaseConfigured()) return null;
   const supabase = createPublicClient();
   return supabase.storage.from("escudos").getPublicUrl(logoPath).data.publicUrl;
 }
 
-function mapTeam(row: TeamRow): Team {
+function mapTeam(row: TeamRow, logos?: Map<string, string>): Team {
+  const name = row.category === "femenino" ? stripFemaleSubLabel(row.name) : row.name;
+  const ownLogo = publicLogoUrl(row.logo_path);
+  const shared =
+    !ownLogo && row.group_name !== "PEND" && !isPlaceholderTeamName(name)
+      ? logos?.get(clubSlug({ name })) ?? null
+      : null;
   return {
     id: row.id,
-    name: row.name,
+    name,
     slug: row.slug,
     group: row.group_name,
     category: row.category as TournamentCategorySlug,
-    yearLabel: row.year_label,
-    logoUrl: publicLogoUrl(row.logo_path),
+    yearLabel: remapFemaleYear(row.category, row.year_label),
+    logoUrl: ownLogo ?? shared,
   };
 }
 
+async function clubLogoMap(
+  supabase: ReturnType<typeof createPublicClient>,
+): Promise<Map<string, string>> {
+  const { data } = await supabase
+    .from("teams")
+    .select("name, group_name, logo_path")
+    .not("logo_path", "is", null);
+  const logos = new Map<string, string>();
+  for (const row of data ?? []) {
+    if (!row.logo_path || row.group_name === "PEND" || isPlaceholderTeamName(row.name)) continue;
+    const slug = clubSlug({ name: row.name });
+    if (logos.has(slug)) continue;
+    const url = publicLogoUrl(row.logo_path);
+    if (url) logos.set(slug, url);
+  }
+  return logos;
+}
+
 function buildMatch(row: MatchRow, home: Team, away: Team): Match {
+  const parsed = splitRoundAndPens(row.round_label);
+  const roundLabel =
+    row.category === "femenino" && parsed.roundLabel
+      ? stripFemaleSubLabel(parsed.roundLabel)
+      : parsed.roundLabel;
   return {
     id: row.id,
     category: row.category as TournamentCategorySlug,
-    yearLabel: row.year_label,
+    yearLabel: remapFemaleYear(row.category, row.year_label),
     phase: row.phase,
-    roundLabel: row.round_label ?? undefined,
+    roundLabel: roundLabel ?? undefined,
     homeTeam: home,
     awayTeam: away,
     homeScore: row.home_score,
     awayScore: row.away_score,
+    homePenalties: parsed.homePenalties,
+    awayPenalties: parsed.awayPenalties,
     kickoffAt: row.kickoff_at,
     court: row.court,
     status: row.status,
@@ -98,7 +140,8 @@ export async function getTeams(filters?: {
 
   if (error || !data?.length) return [];
 
-  return (data as unknown as TeamRow[]).map(mapTeam);
+  const logos = await clubLogoMap(supabase);
+  return (data as unknown as TeamRow[]).map((row) => mapTeam(row, logos));
 }
 
 export async function getMatches(filters?: {
@@ -138,8 +181,9 @@ export async function getMatches(filters?: {
 
   if (teamsError || !teamRows?.length) return [];
 
+  const logos = await clubLogoMap(supabase);
   const teamMap = new Map(
-    (teamRows as TeamRow[]).map((row) => [row.id, mapTeam(row)] as const),
+    (teamRows as TeamRow[]).map((row) => [row.id, mapTeam(row, logos)] as const),
   );
 
   return rows

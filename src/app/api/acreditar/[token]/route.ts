@@ -67,15 +67,37 @@ async function loadPortalByToken(
   const teams = teamsRaw ?? [];
   const teamIds = teams.map((t: { id: string }) => t.id);
 
-  const playersRes = teamIds.length
-    ? await supabase
-        .from("accreditation_players")
-        .select("id, team_id, first_name, last_name, dni, birth_date, jersey_number")
-        .in("team_id", teamIds)
-        .order("jersey_number", { ascending: true })
-    : { data: [] as unknown[], error: null };
+  const playerChunks = teamIds.length
+    ? await Promise.all(
+        teamIds.map((id: string) =>
+          supabase
+            .from("accreditation_players")
+            .select("id, team_id, first_name, last_name, dni, birth_date, jersey_number")
+            .eq("team_id", id),
+        ),
+      )
+    : [];
 
-  // .in() a veces no trae filas en staff; consultamos por equipo.
+  type PlayerRow = {
+    id: string;
+    team_id: string;
+    first_name: string;
+    last_name: string;
+    dni: string;
+    birth_date: string;
+    jersey_number: number;
+  };
+
+  const playersRes = {
+    data: playerChunks.flatMap(
+      (chunk: { data: PlayerRow[] | null }) => chunk.data ?? [],
+    ),
+    error: playerChunks.find(
+      (chunk: { error?: { message?: string } | null }) => chunk.error,
+    )?.error ?? null,
+  };
+
+  // .in() a veces no trae filas; consultamos por equipo.
   const staffChunks = teamIds.length
     ? await Promise.all(
         teamIds.map((id: string) =>

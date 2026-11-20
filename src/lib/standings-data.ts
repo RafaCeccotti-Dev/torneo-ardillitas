@@ -65,20 +65,26 @@ export const mockStandingsByCategory: Record<TournamentCategorySlug, StandingsBy
     },
   },
   femenino: {
+    "2013": {
+      A: [
+        emptyRow("Central Argentino Olímpico", "A", "f13-a1"),
+        emptyRow("Colonia Alpina", "A", "f13-a2"),
+        emptyRow("Warmis Unidas", "A", "f13-a3"),
+        emptyRow("Las Pumas", "A", "f13-a4"),
+        emptyRow("Esc. Raul Toloza", "A", "f13-a5"),
+      ],
+    },
     "2011": {
-      A: [emptyRow("Por confirmar", "A", "f11-a1")],
-      B: [emptyRow("Por confirmar", "B", "f11-b1")],
-      C: [emptyRow("Por confirmar", "C", "f11-c1")],
-    },
-    "2014": {
-      A: [emptyRow("Por confirmar", "A", "f14-a1")],
-      B: [emptyRow("Por confirmar", "B", "f14-b1")],
-      C: [emptyRow("Por confirmar", "C", "f14-c1")],
-    },
-    "2016": {
-      A: [emptyRow("Por confirmar", "A", "f16-a1")],
-      B: [emptyRow("Por confirmar", "B", "f16-b1")],
-      C: [emptyRow("Por confirmar", "C", "f16-c1")],
+      A: [
+        emptyRow("Central Argentino Olímpico", "A", "f11-a1"),
+        emptyRow("Las Pumas", "A", "f11-a2"),
+        emptyRow("Talleres", "A", "f11-a3"),
+      ],
+      B: [
+        emptyRow("Warmis Unidas", "B", "f11-b1"),
+        emptyRow("R. Sayana", "B", "f11-b2"),
+        emptyRow("Atletico Selva", "B", "f11-b3"),
+      ],
     },
   },
 };

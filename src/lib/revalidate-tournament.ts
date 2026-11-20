@@ -6,6 +6,11 @@ export function revalidateTournamentPages() {
   revalidatePath("/partidos", "layout");
   revalidatePath("/partidos/masculino");
   revalidatePath("/partidos/femenino");
+  revalidatePath("/partidos/femenino/2011");
+  revalidatePath("/partidos/femenino/2013");
+  revalidatePath("/tabla/femenino");
+  revalidatePath("/tabla/femenino/2011");
+  revalidatePath("/tabla/femenino/2013");
   revalidatePath("/equipos", "layout");
   revalidatePath("/tabla", "layout");
 }

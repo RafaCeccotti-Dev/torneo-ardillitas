@@ -6,13 +6,35 @@ import { MatchCard } from "@/components/match-card";
 import { MatchesByGroup } from "@/components/matches-by-group";
 import { PageBackground } from "@/components/page-background";
 import { getMatches } from "@/lib/content";
+import { femaleFormatNotes } from "@/data/official-fixtures-femenino";
+import { knockoutRound } from "@/lib/knockout";
+import { crucesQualificationNotes } from "@/lib/standings";
 import {
   isTournamentCategorySlug,
   resolveYearLabel,
   standingsConfig,
   tournamentCategories,
+  yearConfig,
+  yearDisplayName,
   yearLabelToSlug,
 } from "@/lib/tournament-categories";
+import type { Match } from "@/lib/types";
+
+const ROUND_ORDER = ["cuartos", "semis", "final", "otro"] as const;
+const ROUND_TITLE: Record<(typeof ROUND_ORDER)[number], string> = {
+  cuartos: "Cuartos de final",
+  semis: "Semifinales",
+  final: "Final",
+  otro: "Otros",
+};
+
+function groupByRound(items: Match[]) {
+  return ROUND_ORDER.map((round) => ({
+    round,
+    title: ROUND_TITLE[round],
+    items: items.filter((match) => knockoutRound(match.roundLabel) === round),
+  })).filter((group) => group.items.length > 0);
+}
 
 export const revalidate = 60;
 
@@ -51,15 +73,63 @@ export default async function PartidosAnioPage({ params }: PartidosAnioPageProps
   const cruces = matches
     .filter((m) => m.phase === "cruces")
     .sort((a, b) => new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime());
+  const config = yearConfig(categoria, yearLabel);
   const preferredGroups =
-    standingsConfig[categoria].find((item) => item.label === yearLabel)?.groups ?? [];
+    categoria === "femenino" && yearLabel === "2011"
+      ? [...(config?.groups ?? []), "Interzonal"]
+      : config?.groups ?? [];
+  const singleTable = Boolean(config?.singleTable);
   const hasMatches = matches.length > 0;
+  const formatNote =
+    categoria === "femenino"
+      ? femaleFormatNotes[yearLabel]
+      : crucesQualificationNotes[yearLabel];
+  const displayTitle = yearDisplayName(categoria, yearLabel);
+
+  const crucesBuckets =
+    categoria === "femenino"
+      ? [
+          {
+            key: "oro",
+            title: "Copa de Oro",
+            items: cruces.filter((m) => (m.roundLabel ?? "").toLowerCase().includes("copa de oro")),
+          },
+          {
+            key: "plata",
+            title: "Copa de Plata",
+            items: cruces.filter((m) => (m.roundLabel ?? "").toLowerCase().includes("copa de plata")),
+          },
+        ]
+      : [
+          {
+            key: "oro",
+            title: "Copa de Oro",
+            items: cruces.filter((m) => (m.roundLabel ?? "").toLowerCase().includes("copa de oro")),
+          },
+          {
+            key: "plata",
+            title: "Copa de Plata",
+            items: cruces.filter((m) => (m.roundLabel ?? "").toLowerCase().includes("copa de plata")),
+          },
+          {
+            key: "otros",
+            title: "Otros cruces",
+            items: cruces.filter((m) => {
+              const label = (m.roundLabel ?? "").toLowerCase();
+              return !label.includes("copa de oro") && !label.includes("copa de plata");
+            }),
+          },
+        ];
 
   return (
     <PageBackground imageKey="partidos" className="min-h-[40vh]">
       <ContentSection
-        title={`Categoría ${yearLabel}`}
-        description={`${category.title} · partidos ordenados por grupo.`}
+        title={`Categoría ${displayTitle}`}
+        description={
+          singleTable
+            ? `${category.title} · fase inicial y cruces.`
+            : `${category.title} · partidos ordenados por grupo.`
+        }
       >
         <Link
           href={`/partidos/${categoria}`}
@@ -74,23 +144,32 @@ export default async function PartidosAnioPage({ params }: PartidosAnioPageProps
               Fixture próximamente
             </p>
             <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-white/75">
-              Todavía no hay partidos cargados para la categoría {yearLabel}.
+              {formatNote ?? `Todavía no hay partidos cargados para la categoría ${displayTitle}.`}
             </p>
           </div>
         ) : (
           <div className="space-y-10">
+            {formatNote ? (
+              <p className="rounded-2xl border border-yellow-400/20 bg-black/40 px-4 py-3 text-sm leading-relaxed text-white/75 sm:px-5">
+                {formatNote}
+              </p>
+            ) : null}
             <section className="space-y-4">
               <div className="flex flex-wrap items-end justify-between gap-2">
                 <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-yellow-400 sm:text-xl">
-                  Fase de grupos
+                  {singleTable ? "Fase inicial" : "Fase de grupos"}
                 </h2>
-                {preferredGroups.length > 0 ? (
+                {!singleTable && preferredGroups.length > 0 ? (
                   <p className="text-xs text-white/50 sm:text-sm">
                     Grupos {preferredGroups.join(" · ")}
                   </p>
                 ) : null}
               </div>
-              <MatchesByGroup matches={grupos} preferredGroups={preferredGroups} />
+              <MatchesByGroup
+                matches={grupos}
+                preferredGroups={preferredGroups}
+                unifiedHeading={singleTable ? "Todos contra todos" : undefined}
+              />
             </section>
 
             <section className="space-y-4">
@@ -99,30 +178,7 @@ export default async function PartidosAnioPage({ params }: PartidosAnioPageProps
               </h2>
               {cruces.length > 0 ? (
                 <div className="space-y-6">
-                  {[
-                    {
-                      key: "oro",
-                      title: "Copa de Oro",
-                      items: cruces.filter((m) =>
-                        (m.roundLabel ?? "").toLowerCase().includes("copa de oro"),
-                      ),
-                    },
-                    {
-                      key: "plata",
-                      title: "Copa de Plata",
-                      items: cruces.filter((m) =>
-                        (m.roundLabel ?? "").toLowerCase().includes("copa de plata"),
-                      ),
-                    },
-                    {
-                      key: "otros",
-                      title: "Otros cruces",
-                      items: cruces.filter((m) => {
-                        const label = (m.roundLabel ?? "").toLowerCase();
-                        return !label.includes("copa de oro") && !label.includes("copa de plata");
-                      }),
-                    },
-                  ]
+                  {crucesBuckets
                     .filter((section) => section.items.length > 0)
                     .map((section) => (
                       <div
@@ -134,9 +190,20 @@ export default async function PartidosAnioPage({ params }: PartidosAnioPageProps
                             {section.title}
                           </h3>
                         </header>
-                        <div className="grid gap-3 p-3 sm:gap-4 sm:p-4 md:grid-cols-2">
-                          {section.items.map((match) => (
-                            <MatchCard key={match.id} match={match} />
+                        <div className="space-y-5 p-3 sm:p-4">
+                          {groupByRound(section.items).map((group) => (
+                            <div key={group.round} className="space-y-3">
+                              {groupByRound(section.items).length > 1 ? (
+                                <p className="px-1 text-xs font-semibold uppercase tracking-[0.16em] text-yellow-400/80">
+                                  {group.title}
+                                </p>
+                              ) : null}
+                              <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                                {group.items.map((match) => (
+                                  <MatchCard key={match.id} match={match} />
+                                ))}
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </div>

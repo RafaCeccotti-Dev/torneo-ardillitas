@@ -5,12 +5,20 @@ import type { Match } from "@/lib/types";
 type MatchesByGroupProps = {
   matches: Match[];
   preferredGroups?: string[];
+  /** Una sola fase, sin carteles de grupo. */
+  unifiedHeading?: string;
 };
 
-export function MatchesByGroup({ matches, preferredGroups = [] }: MatchesByGroupProps) {
-  const sections = groupPhaseMatchesByGroup(matches, preferredGroups);
+export function MatchesByGroup({
+  matches,
+  preferredGroups = [],
+  unifiedHeading,
+}: MatchesByGroupProps) {
+  const sections = unifiedHeading
+    ? [{ group: unifiedHeading, matches: [...matches].sort((a, b) => new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime()) }]
+    : groupPhaseMatchesByGroup(matches, preferredGroups);
 
-  if (sections.length === 0) {
+  if (sections.length === 0 || (unifiedHeading && matches.length === 0)) {
     return (
       <p className="rounded-xl border border-dashed border-yellow-400/25 p-5 text-sm text-white/60">
         Todavía no hay partidos de grupos.
@@ -27,7 +35,11 @@ export function MatchesByGroup({ matches, preferredGroups = [] }: MatchesByGroup
         >
           <header className="flex items-center justify-between gap-3 border-b border-yellow-400/15 bg-yellow-400/10 px-4 py-3 sm:px-5">
             <h3 className="font-display text-base font-bold uppercase tracking-wide text-yellow-300 sm:text-lg">
-              Grupo {group}
+              {unifiedHeading
+                ? unifiedHeading
+                : group.toLowerCase() === "interzonal"
+                  ? "Interzonal"
+                  : `Grupo ${group}`}
             </h3>
             <span className="rounded-full bg-black/30 px-2.5 py-0.5 text-xs text-white/70">
               {groupMatches.length}{" "}
